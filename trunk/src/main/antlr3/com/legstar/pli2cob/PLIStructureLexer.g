@@ -71,9 +71,9 @@ fragment UPPER: 'A'..'Z';
 fragment SPACE: ' ' | '\t';
 fragment BREAK: '_';
 fragment DOT: '.';
+fragment STRING_DELIMITER: QUOTE | APOSTROPHE;
 fragment QUOTE: '"';
 fragment APOSTROPHE: '\'';
-fragment STRING_DELIMITER: QUOTE | APOSTROPHE;
 // Note that SYMBOL does not include the quote and double-quote characters.
 fragment SYMBOL: '!' | '#'..'&' | '('..'/' | ':'..'@' | '['..'`' | '{'..'~';
 
