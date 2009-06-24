@@ -1,6 +1,6 @@
 #summary Type by type conversion table.
 
-||*PLI* ||* COBOL * ||
+|| *PLI* || *COBOL* ||
 ||FIXED BINARY(15,0) ||PIC S9(4) COMP-5 ||
 ||FIXED BINARY(31,0) ||PIC S9(9) COMP-5 ||
 ||FIXED BINARY(63,0) ||PIC S9(18) COMP-5 ||
@@ -15,6 +15,6 @@
 ||CHARACTER(n) ||PIC X(n) ||
 ||GRAPHIC(n) ||PIC G(n) DISPLAY-1 ||
 ||WIDECHAR(n) ||PIC N(n) ||
-||PLISTRING CHAR(n) VARYING ||{{{01 PLISTRING. 02 LEN PIC 9(4) BINARY.
-    02 CHAR PIC X OCCURS 1 TO n DEPENDING ON LEN. }}}||
+||PLISTRING CHAR(n) VARYING ||01 PLISTRING. 02 LEN PIC 9(4) BINARY.
+    02 CHAR PIC X OCCURS 1 TO n DEPENDING ON LEN.||
 ||PICTURE '(n)9' ||PIC 9(n) ||
