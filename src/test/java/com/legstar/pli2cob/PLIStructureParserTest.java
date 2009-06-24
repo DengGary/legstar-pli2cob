@@ -358,9 +358,8 @@ public class PLIStructureParserTest extends AbstractTester {
 
 				"  n0 -> n1 // \"DATA_ITEM\" -> \"NAME\""
 				+ "  n1 -> n2 // \"NAME\" -> \"Value\""
-				+ "  n0 -> n3 // \"DATA_ITEM\" -> \"STRING\""
-				+ "  n3 -> n4 // \"STRING\" -> \"PICTURE\""
-				+ "  n4 -> n5 // \"PICTURE\" -> \"'Z9V999'\""
+				+ "  n0 -> n3 // \"DATA_ITEM\" -> \"PICTURE\""
+				+ "  n3 -> n4 // \"PICTURE\" -> \"'Z9V999'\""
 		);
 
 	}

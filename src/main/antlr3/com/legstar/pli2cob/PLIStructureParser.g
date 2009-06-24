@@ -127,7 +127,7 @@ refer_specification:
  * -- Picture attribute
 *------------------------------------------------------------------*/
 picture_attribute:
-    PICTURE_KEYWORD picture_value -> ^(STRING picture_value)
+    PICTURE_KEYWORD! picture_value
     ;
 
 picture_value:

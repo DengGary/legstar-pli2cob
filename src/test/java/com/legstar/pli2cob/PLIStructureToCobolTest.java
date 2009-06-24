@@ -23,10 +23,10 @@ public class PLIStructureToCobolTest extends AbstractTester {
 	}
 
 	/**
-	 * Alphanumeric single item.
+	 * Character single item.
 	 * @throws CobolFormatException if conversion fails
 	 */
-	public void testAlphanumericItem() throws CobolFormatException {
+	public void testCharacterItem() throws CobolFormatException {
 		convertCheck(
 				"Declare 1 Last char(20);",
 
@@ -38,10 +38,141 @@ public class PLIStructureToCobolTest extends AbstractTester {
 	}
 
 	/**
-	 * FLOAT + DECIMAL single item (unsupported).
+	 * Character single item with varying attribute.
+	 * @throws CobolFormatException if conversion fails
+	 */
+	public void testCharacterVaryingItem() throws CobolFormatException {
+		convertCheck(
+				"Declare 1 Last char(20) varying;",
+
+				"      *" + _LS
+				+ "      *" + _LS
+				+ "      *" + _LS
+				+ "       01  Last." + _LS
+				+ "            02 LEN PIC 9(4) BINARY." + _LS
+				+ "            02 CHAR PIC X OCCURS 1 TO 20 DEPENDING ON LEN." + _LS
+				+ "" + _LS);
+	}
+	/**
+	 * Graphic single item.
+	 * @throws CobolFormatException if conversion fails
+	 */
+	public void testGraphicItem() throws CobolFormatException {
+		convertCheck(
+				"Declare 1 Last graphic(20);",
+
+				"      *" + _LS
+				+ "      *" + _LS
+				+ "      *" + _LS
+				+ "       01  Last PIC G(20) DISPLAY-1." + _LS
+				+ "" + _LS);
+	}
+
+	/**
+	 * Widechar single item.
+	 * @throws CobolFormatException if conversion fails
+	 */
+	public void testWidecharItem() throws CobolFormatException {
+		convertCheck(
+				"Declare 1 Last widechar(20);",
+
+				"      *" + _LS
+				+ "      *" + _LS
+				+ "      *" + _LS
+				+ "       01  Last PIC N(20)." + _LS
+				+ "" + _LS);
+	}
+
+	/**
+	 * BIT strings are not supported.
+	 * @throws CobolFormatException if conversion fails
+	 */
+	public void testBitItem() throws CobolFormatException {
+		try {
+			convertCheck(
+					"Declare 1 Last bit(20);",
+
+					"      *" + _LS
+					+ "      *" + _LS
+					+ "      *" + _LS
+					+ "       01  Last PIC X(20)." + _LS
+					+ "" + _LS);
+			fail();
+		} catch (Exception e) {
+			assertEquals("Unsupported string type:"
+					+ " [level:1,"
+					+ " name:Last,"
+					+ " type:BIT,"
+					+ " length:20,"
+					+ " varying:NONVARYING]", e.getMessage());
+		}
+	}
+
+	/**
+	 * Picture alphabetic single item.
+	 * @throws CobolFormatException if conversion fails
+	 */
+	public void testPictureAlphabeticItem() throws CobolFormatException {
+		convertCheck(
+				"Declare 1 Last pic '(5)A9XX';",
+
+				"      *" + _LS
+				+ "      *" + _LS
+				+ "      *" + _LS
+				+ "       01  Last PIC A(5)9XX." + _LS
+				+ "" + _LS);
+	}
+
+	/**
+	 * Picture numeric single item.
+	 * @throws CobolFormatException if conversion fails
+	 */
+	public void testPictureNumericItem() throws CobolFormatException {
+		convertCheck(
+				"Declare 1 Last pic 'ZZV(3)9';",
+
+				"      *" + _LS
+				+ "      *" + _LS
+				+ "      *" + _LS
+				+ "       01  Last PIC ZZV9(3)." + _LS
+				+ "" + _LS);
+	}
+
+	/**
+	 * FLOAT + DECIMAL single float.
 	 * @throws CobolFormatException if conversion fails
 	 */
 	public void testFloatDecimalItem() throws CobolFormatException {
+		convertCheck(
+				"Declare 1 A float dec(6);",
+
+				"      *" + _LS
+				+ "      *" + _LS
+				+ "      *" + _LS
+				+ "       01  A COMP-1." + _LS
+				+ "" + _LS);
+	}
+
+	/**
+	 * FLOAT + DECIMAL double float.
+	 * @throws CobolFormatException if conversion fails
+	 */
+	public void testDoubleDecimalItem() throws CobolFormatException {
+		convertCheck(
+				"Declare 1 A float dec(16);",
+
+				"      *" + _LS
+				+ "      *" + _LS
+				+ "      *" + _LS
+				+ "       01  A COMP-2." + _LS
+				+ "" + _LS);
+	}
+
+	/**
+	 * FLOAT + DECIMAL single item with large precision.
+	 * @throws CobolFormatException if conversion fails
+	 */
+	public void testFloatDecimalItemTooLarge() throws CobolFormatException {
 		try {
 			convertCheck(
 					"Declare 1 A float dec(20);",
@@ -53,7 +184,7 @@ public class PLIStructureToCobolTest extends AbstractTester {
 					+ "" + _LS);
 			fail();
 		} catch (Exception e) {
-			assertEquals("Float decimals are not supported:"
+			assertEquals("Unsupported precision:"
 					+ " [level:1,"
 					+ " name:A,"
 					+ " scale:FLOAT,"
@@ -249,10 +380,11 @@ public class PLIStructureToCobolTest extends AbstractTester {
 	 * @throws Exception if something goes wrong
 	 */
 	public void testFormatCobolLevel() throws Exception {
-		assertEquals("01", PLIStructureToCobol.formatLevel(1));
-		assertEquals("12", PLIStructureToCobol.formatLevel(12));
+		PLIStructureToCobol converter = new PLIStructureToCobol();
+		assertEquals("01", converter.formatLevel(1));
+		assertEquals("12", converter.formatLevel(12));
 		try {
-			assertEquals("12", PLIStructureToCobol.formatLevel(145));
+			assertEquals("12", converter.formatLevel(145));
 			fail();
 		} catch (CobolFormatException e) {
 			assertEquals("Level 145 is invalid for COBOL", e.getMessage());
@@ -264,10 +396,11 @@ public class PLIStructureToCobolTest extends AbstractTester {
 	 * @throws Exception if something goes wrong
 	 */
 	public void testFormatCobolName() throws Exception {
-		assertEquals("to-5z", PLIStructureToCobol.formatName("to_5z"));
+		PLIStructureToCobol converter = new PLIStructureToCobol();
+		assertEquals("to-5z", converter.formatName("to_5z"));
 		assertEquals("a12345678901234567890123456789",
-				PLIStructureToCobol.formatName("a123456789012345678901234567890"));
-		assertEquals("to5z", PLIStructureToCobol.formatName("to5z"));
+				converter.formatName("a123456789012345678901234567890"));
+		assertEquals("to5z", converter.formatName("to5z"));
 	}
 
 	/**
