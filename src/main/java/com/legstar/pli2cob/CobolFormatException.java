@@ -5,17 +5,17 @@ package com.legstar.pli2cob;
  *
  */
 public class CobolFormatException extends Exception {
-	
-	/**
-	 * A serial ID.
-	 */
-	private static final long serialVersionUID = -3412642985054021054L;
 
-	/**
-	 * @param msg the exception message
-	 */
-	public CobolFormatException(final String msg) {
-		super(msg);
-	}
+    /**
+     * A serial ID.
+     */
+    private static final long serialVersionUID = -3412642985054021054L;
+
+    /**
+     * @param msg the exception message
+     */
+    public CobolFormatException(final String msg) {
+        super(msg);
+    }
 
 }
