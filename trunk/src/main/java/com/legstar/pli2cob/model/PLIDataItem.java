@@ -1,10 +1,14 @@
-package com.legstar.pli2cob;
+package com.legstar.pli2cob.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.antlr.runtime.tree.CommonTreeAdaptor;
 import org.antlr.runtime.tree.TreeAdaptor;
+
+import com.legstar.pli2cob.PLIStructureParser;
 
 /**
  * A Data Item model that can be built from an abstract syntax tree node.
@@ -12,7 +16,7 @@ import org.antlr.runtime.tree.TreeAdaptor;
  * This is an immutable class.
  *
  */
-public class PLIDataItem {
+public class PLIDataItem extends AbstractPLIData {
 
 	/** Level. */
 	private int _level;
@@ -53,6 +57,16 @@ public class PLIDataItem {
 	/** True for signed numerics.*/
 	private boolean _isSigned;
 	
+	/** Dimensions list. */
+	private List < PLIDataDimension > _dimensions = new ArrayList < PLIDataDimension >();
+	
+	/**
+	 * @return the dimensions list (list is empty if not an array)
+	 */
+	public List < PLIDataDimension > getDimensions() {
+		return _dimensions;
+	}
+
 	/**
 	 * @param astItem an abstract syntax tree node
 	 */
@@ -67,6 +81,7 @@ public class PLIDataItem {
 	public PLIDataItem(final TreeAdaptor adaptor, final Object astItem) {
 		setLevel(adaptor, astItem);
 		setName(adaptor, astItem);
+		setDimensions(adaptor, astItem);
 		setNumericAttributes(adaptor, astItem);
 		setStringAttributes(adaptor, astItem);
 		setPictureAttributes(adaptor, astItem);
@@ -179,7 +194,6 @@ public class PLIDataItem {
 	 * If a data item other than root doesn't have a level we return 1.
 	 * @param adaptor the tree navigator
 	 * @param astItem the data item abstract syntax subtree
-	 * @return the level number if one is found, 1 otherwise
 	 */
 	private void setLevel(final TreeAdaptor adaptor, final Object astItem) {
 		String level = (String) getAttributeValue(
@@ -197,11 +211,28 @@ public class PLIDataItem {
 	 * For the root node, if it is not a data item, returns null.
 	 * @param adaptor the tree navigator
 	 * @param astItem the data item abstract syntax subtree
-	 * @return the data item name
 	 */
 	private void setName(final TreeAdaptor adaptor, final Object astItem) {
 		_name = (String) getAttributeValue(
 				adaptor, astItem, PLIStructureParser.NAME, null);
+	}
+
+	/**
+	 * Initial setting for dimensions for a given data item.
+	 */
+	private void setDimensions(final TreeAdaptor adaptor, final Object astItem) {
+		Object dimensions = getAttribute(
+				adaptor, astItem, PLIStructureParser.DIMENSIONS);
+		if (dimensions == null) {
+			return;
+		}
+		int n = adaptor.getChildCount(dimensions);
+		for (int i = 0; i < n; i++) {
+			Object dimension = adaptor.getChild(dimensions, i);
+			if (adaptor.getType(dimension) == PLIStructureParser.DIMENSION) {
+				_dimensions.add(new PLIDataDimension(adaptor, dimension));
+			}
+		}
 	}
 
 	/**
@@ -327,52 +358,6 @@ public class PLIDataItem {
 		}
 	}
 
-	/**
-	 * For single valued attributes, this returns either the value or a default
-	 * one if none is found.
-	 * @param adaptor the tree navigator
-	 * @param astItem the data item abstract syntax subtree
-	 * @param attributeType the type of attribute
-	 * @param defaultValue the default value
-	 * @return the attribute value or a default. Null if the element is nil.
-	 */
-	private static Object getAttributeValue(
-			final TreeAdaptor adaptor,
-			final Object astItem,
-			final int attributeType,
-			final Object defaultValue) {
-		if (adaptor.isNil(astItem)) {
-			return null;
-		}
-		Object value = getAttribute(adaptor, astItem, attributeType);
-		if (value == null) {
-			return defaultValue;
-		} else {
-			return adaptor.getText(adaptor.getChild(value, 0));
-		}
-	}
-
-	/**
-	 * Search a tree direct childs for an attribute type.
-	 * @param adaptor the tree navigator
-	 * @param astItem the data item abstract syntax subtree
-	 * @param attributeType the type of attribute
-	 * @return the attribute tree item if found, null otherwise.
-	 */
-	private static Object getAttribute(
-			final TreeAdaptor adaptor,
-			final Object astItem,
-			final int attributeType) {
-		int n = adaptor.getChildCount(astItem);
-		for (int i = 0; i < n; i++) {
-			Object attribute = adaptor.getChild(astItem, i);
-			if (adaptor.getType(attribute) == attributeType) {
-				return attribute;
-			}
-		}
-		return null;
-	}
-
 	/** Floating point or fixed numerics. */
 	public enum Scale { FLOAT, FIXED };
 
@@ -384,6 +369,7 @@ public class PLIDataItem {
 
 	/** String varying types. */
 	public enum VaryingType { NONVARYING, VARYING, VARYINGZ };
+
 	/**
 	 * Pretty print.
 	 * @see java.lang.Object#toString()
@@ -391,32 +377,39 @@ public class PLIDataItem {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
-		sb.append("level:" + getLevel());
+		sb.append("level : " + getLevel());
 		sb.append(", ");
-		sb.append("name:" + getName());
+		sb.append("name : " + getName());
+		if (getDimensions().size() > 0) {
+			sb.append(", ");
+			sb.append("dimensions : ");
+			for (PLIDataDimension dimension : getDimensions()) {
+				sb.append(dimension.toString());
+			}
+		}
 		if (isString()) {
 			sb.append(", ");
-			sb.append("type:" + getStringType());
+			sb.append("type : " + getStringType());
 			sb.append(", ");
-			sb.append("length:" + getLength());
+			sb.append("length : " + getLength());
 			sb.append(", ");
-			sb.append("varying:" + getVaryingType());
+			sb.append("varying : " + getVaryingType());
 		}
 		if (isNumeric()) {
 			sb.append(", ");
-			sb.append("scale:" + getScale());
+			sb.append("scale : " + getScale());
 			sb.append(", ");
-			sb.append("base:" + getBase());
+			sb.append("base : " + getBase());
 			sb.append(", ");
-			sb.append("signed:" + isSigned());
+			sb.append("signed : " + isSigned());
 			sb.append(", ");
-			sb.append("precision:" + getPrecision());
+			sb.append("precision : " + getPrecision());
 			sb.append(", ");
-			sb.append("scaling factor:" + getScalingFactor());
+			sb.append("scaling factor : " + getScalingFactor());
 		}
 		if (getPicture() != null) {
 			sb.append(", ");
-			sb.append("picture:" + getPicture());
+			sb.append("picture : " + getPicture());
 		}
 		sb.append("]");
 		return sb.toString();
