@@ -21,3 +21,7 @@
 ||PICTURE '9(n)V9(m)S' ||PIC S9(n)V9(m) SIGN SEPARATE ||
 ||PICTURE 'T9(n)V9(m)' ||PIC S9(n+1)V9(m) LEADING ||
 ||PICTURE '9(n)V9(m)T' ||PIC S9(n)V9(m+1) ||
+||DIMENSION (n) ||OCCURS n ||
+||DIMENSION (n:m) ||OCCURS m-n+1 ||
+||DIMENSION (n REFER(X)) ||OCCURS n DEPENDING ON X ||
+||DIMENSION (n,m) ||OCCURS nxm ||
