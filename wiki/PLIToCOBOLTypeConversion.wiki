@@ -1,4 +1,5 @@
 #summary Type by type conversion table.
+#labels Phase-Requirements,Featured
 
 || *PLI* || *COBOL* ||
 ||FIXED BINARY(15,0) ||PIC S9(4) COMP-5 ||
