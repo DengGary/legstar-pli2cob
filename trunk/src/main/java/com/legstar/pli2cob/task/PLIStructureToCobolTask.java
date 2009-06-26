@@ -119,8 +119,8 @@ public class PLIStructureToCobolTask extends Task {
      */
     private String fileToString(final File file) {
         String errorMessage = "Unable to read file " + file;
-        BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();
+        BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(file));
             String line = null;
