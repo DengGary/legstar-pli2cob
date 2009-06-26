@@ -6,6 +6,75 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>LegStar PLI to COBOL Structure converter</name>
     <description>Converts PLI structures to COBOL structures</description>
+
+    <issueManagement>
+        <system>Google Code Issue Tracking</system>
+        <url>http://code.google.com/p/legstar-pli2cob/issues/list</url>
+    </issueManagement>
+
+    <scm>
+        <connection>scm:svn:http://legstar-pli2cob.googlecode.com/svn/trunk/</connection>
+        <developerConnection>scm:svn:https://legstar-pli2cob.googlecode.com/svn/trunk/</developerConnection>
+        <url>http://legstar-pli2cob.googlecode.com/svn/trunk/</url>
+    </scm>
+
+    <mailingLists>
+        <mailingList>
+            <name>LegStar users mailing list</name>
+            <subscribe>http://groups.google.com/group/legstar-user/subscribe</subscribe>
+            <unsubscribe>http://groups.google.com/group/legstar-user/subscribe</unsubscribe>
+            <post>legstar-user@googlegroups.com</post>
+            <archive>http://groups.google.com/group/legstar-user/topics</archive>
+        </mailingList>
+    </mailingLists>
+
+    <developers>
+        <developer>
+            <id>fady</id>
+            <name>Fady Moussallam</name>
+            <email>fady@NOSPAMlegsem.com</email>
+            <organization>Legsem.com</organization>
+            <roles>
+                <role>Project Manager</role>
+                <role>Architect</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License</name>
+            <url>http://www.gnu.org/licenses/lgpl-3.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>LegSem</name>
+        <url>http://www.legsem.com/</url>
+    </organization>
+
+    <distributionManagement>
+        <downloadUrl>http://www.legsem.com/legstar/mavenrepo</downloadUrl>
+        <site>
+            <id>local.website</id>
+            <name>Local Website</name>
+            <url>file:///${legstar-dev-website-local-dir}/pli2cob</url>
+        </site>
+        <repository>
+            <id>ftp-release-repository</id>
+            <name>LEGSTAR Distributions Repository</name>
+            <url>ftp://ftp.legsem.com/public_html/legstar/maven/repo</url>
+        </repository>
+        <snapshotRepository>
+            <id>ftp-snapshots-repository</id>
+            <name>LEGSTAR Distributions Snapshot Repository</name>
+            <url>ftp://ftp.legsem.com/public_html/legstar/maven/snapshots</url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
+
     <dependencies>
         <dependency>
             <groupId>commons-logging</groupId>
@@ -49,8 +118,38 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ftp</artifactId>
+                <version>1.0-beta-2</version>
+            </extension>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-webdav</artifactId>
+                <version>1.0-beta-2</version>
+            </extension>
+        </extensions>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId> 
+                    <artifactId>maven-assembly-plugin</artifactId> 
+                    <version>2.2-beta-2</version> 
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId> 
+                    <artifactId>maven-site-plugin</artifactId> 
+                    <version>2.0-beta-7</version> 
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -59,6 +158,20 @@
                     <target>1.5</target>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <inherited>true</inherited>
+                <executions>
+                    <execution>
+                        <id>project-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr3-maven-plugin</artifactId>
@@ -73,6 +186,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId> 
                 <configuration>
@@ -90,6 +204,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
       
@@ -110,6 +225,104 @@
 
                 </executions>
             </plugin>
+
          </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+
+            <plugin>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>index</report>
+                            <report>summary</report>
+                            <report>project-team</report>
+                            <report>scm</report>
+                            <report>issue-tracking</report>
+                            <report>mailing-list</report>
+                            <report>dependencies</report>
+                            <report>license</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <configuration>
+                    <targetJdk>1.5</targetJdk>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <configuration>
+                    <instrumentation>
+                        <!-- Instrumenting performance tests is useless for test coverage analysis -->
+                        <excludes>
+                            <exclude>**/perf/**/*.class</exclude>
+                        </excludes>
+                    </instrumentation>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>taglist-maven-plugin</artifactId>
+                <configuration>
+                    <tags>
+                        <tag>TODO</tag>
+                        <tag>@todo</tag>
+                        <tag>FIXME</tag>
+                        <tag>@fixme</tag>
+                        <tag>@deprecated</tag>
+                    </tags>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <links>
+                        <link>http://java.sun.com/j2ee/1.4/docs/api</link>
+                        <link>http://java.sun.com/j2se/1.4.2/docs/api</link>
+                        <link>http://java.sun.com/j2se/1.5.0/docs/api</link>
+                    </links>
+                    <excludePackageNames>com.legstar.coxb.cust.*</excludePackageNames>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>javadoc</report>
+                        <!-- <report>test-javadoc</report> -->
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jdepend-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+            </plugin>
+
+        </plugins>
+    
+    </reporting>
+
 </project>
