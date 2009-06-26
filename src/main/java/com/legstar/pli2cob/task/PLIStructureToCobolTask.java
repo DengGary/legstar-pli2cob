@@ -38,17 +38,17 @@ import com.legstar.pli2cob.PLIStructureParser.script_return;
  * Usage:<br>
  *
  * &nbsp;&lt;project ...&gt;<br>
- *        &lt;taskdef name="pli2cob" classname="com.legstar.pli2cob.task.PLIStructureToCobolTask" /&gt;<br>
- *        &lt;property name="pli.dir" value="../pli"/&gt;<br>
- *        &lt;property name="cobol.dir" value="../cobol"/&gt;<br>
- *        &lt;target name="generate"&gt;<br>
- *            &lt;pli2cob targetDir="${cobol.dir}"&gt;<br>
- *                &lt;fileset dir="${pli.dir}"&gt;<br>
- *                    &lt;include name="*.pli" /&gt;<br>
- *                &lt;/fileset&gt;<br>
- *            &lt;/pli2cob&gt;<br>
- *        &lt;/target&gt;<br>
- *    &lt;/project&gt;<br>
+ * &nbsp;&nbsp;&lt;taskdef name="pli2cob" classname="com.legstar.pli2cob.task.PLIStructureToCobolTask" /&gt;<br>
+ * &nbsp;&nbsp;&lt;property name="pli.dir" value="../pli"/&gt;<br>
+ * &nbsp;&nbsp;&lt;property name="cobol.dir" value="../cobol"/&gt;<br>
+ * &nbsp;&nbsp;&lt;target name="generate"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&lt;pli2cob targetDir="${cobol.dir}"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;fileset dir="${pli.dir}"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;include name="*.pli" /&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/fileset&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&lt;/pli2cob&gt;<br>
+ * &nbsp;&nbsp;&&lt;/target&gt;<br>
+ * &nbsp;&lt;/project&gt;<br>
  * </code>
  *
  */
@@ -68,9 +68,7 @@ public class PLIStructureToCobolTask extends Task {
      *  Check parameters and produce COBOL fragment.
      */
     public final void execute() {
-        if (_log.isDebugEnabled()) {
-            _log.debug("Converting PLI files");
-        }
+        _log.info("Converting PLI files");
 
         checkParameters();
 
@@ -83,14 +81,10 @@ public class PLIStructureToCobolTask extends Task {
             String[] files = scanner.getIncludedFiles();
             for (int i = 0; i < files.length; i++) {
                 File pliSourceFile = new File(fileset.getDir(getProject()), files[i]);
-                if (_log.isDebugEnabled()) {
-                    _log.debug("Converting PLI file: " + pliSourceFile);
-                }
+                _log.info("Converting PLI file: " + pliSourceFile);
                 String cobolSource = convert(normalize(parse(lexify(fileToString(pliSourceFile)))));
                 File cobolSourceFile = stringToFile(getTargetDir(), pliSourceFile, cobolSource);
-                if (_log.isDebugEnabled()) {
-                    _log.debug("Created COBOL file: " + cobolSourceFile);
-                }
+                _log.info("Created COBOL file: " + cobolSourceFile);
             }
         }
     }
@@ -125,13 +119,12 @@ public class PLIStructureToCobolTask extends Task {
      */
     private String fileToString(final File file) {
         String errorMessage = "Unable to read file " + file;
-        FileReader fReader = null;
+        BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();
         try {
-            fReader = new FileReader(file);
-            BufferedReader bReader = new BufferedReader(fReader);
+            reader = new BufferedReader(new FileReader(file));
             String line = null;
-            while ((line = bReader.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 sb.append(line + '\n');
             }
             return sb.toString();
@@ -142,9 +135,9 @@ public class PLIStructureToCobolTask extends Task {
             _log.error(errorMessage, e);
             throw (new BuildException(errorMessage));
         } finally {
-            if (fReader != null) {
+            if (reader != null) {
                 try {
-                    fReader.close();
+                    reader.close();
                 } catch (IOException e) {
                     _log.warn("Unable to close file " + file, e);
                 }

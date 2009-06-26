@@ -20,7 +20,7 @@ import com.legstar.pli2cob.model.PLIDataItem.Scale;
 public class PLIStructureToCobol {
 
     /** Main template for a COBOL fragment. */
-    public static StringTemplate _cobolFragmentST =
+    public static final StringTemplate _cobolFragmentST =
         new StringTemplate(
                 "      *\n"
                 +  "      *\n"
@@ -29,61 +29,61 @@ public class PLIStructureToCobol {
                 + "\n");
 
     /** COBOL data description template. */
-    public static StringTemplate _dataDescriptionST =
+    public static final StringTemplate _dataDescriptionST =
         new StringTemplate("$level$ $name$$attributes$.\n");
 
     /** Attributes template. */
-    public static StringTemplate _attributesST =
+    public static final StringTemplate _attributesST =
         new StringTemplate("$occurs$$pictureUsage$");
 
     /** Occurs template. */
-    public static StringTemplate _occursST =
+    public static final StringTemplate _occursST =
         new StringTemplate(" OCCURS $maxOccurs$$dependingOn$");
 
     /** Depending on template. */
-    public static StringTemplate _dependingOnST =
+    public static final StringTemplate _dependingOnST =
         new StringTemplate(" DEPENDING $dependingOn$");
 
     /** Picture template for picture strings. */
-    public static StringTemplate _pictureValueST =
+    public static final StringTemplate _pictureValueST =
         new StringTemplate(" PIC $picture$");
 
     /** Picture template for character. */
-    public static StringTemplate _characterPictureValueST =
+    public static final StringTemplate _characterPictureValueST =
         new StringTemplate(" PIC X($_length$)");
 
     /** Picture template for varying character. */
-    public static StringTemplate _characterVaryingPictureValueST =
+    public static final StringTemplate _characterVaryingPictureValueST =
         new StringTemplate(".\n"
                 + "$_subLevel$ LEN PIC 9(4) BINARY.\n"
                 + "$_subLevel$ CHAR PIC X OCCURS 1 TO $_length$ DEPENDING ON LEN");
 
     /** Picture template for graphic. */
-    public static StringTemplate _graphicPictureValueST =
+    public static final StringTemplate _graphicPictureValueST =
         new StringTemplate(" PIC G($_length$) DISPLAY-1");
 
     /** Picture template for widechar. */
-    public static StringTemplate _widecharPictureValueST =
+    public static final StringTemplate _widecharPictureValueST =
         new StringTemplate(" PIC N($_length$)");
 
     /** Single float usage template. */
-    public static StringTemplate _singleFloatUsageST =
+    public static final StringTemplate _singleFloatUsageST =
         new StringTemplate(" COMP-1");
 
     /** Double float usage template. */
-    public static StringTemplate _doubleFloatUsageST =
+    public static final StringTemplate _doubleFloatUsageST =
         new StringTemplate(" COMP-2");
 
     /** Packed decimal picture and usage template. */
-    public static StringTemplate _packedPictureUsageST =
+    public static final StringTemplate _packedPictureUsageST =
         new StringTemplate(" PIC S9($left_decimals$)$decimal_part$ PACKED-DECIMAL");
 
     /** Used for decimal part with virtual decimal point. */
-    public static StringTemplate _decimalPartST =
+    public static final StringTemplate _decimalPartST =
         new StringTemplate("V9($right_decimals$)");
 
     /** Binary picture and usage template. */
-    public static StringTemplate _binaryPictureUsageST =
+    public static final StringTemplate _binaryPictureUsageST =
         new StringTemplate(" PIC $signed$9($left_decimals$) COMP-5");
 
     /** A simplistic pattern for COBOL name compliance.*/
@@ -421,7 +421,6 @@ public class PLIStructureToCobol {
      * <li>Repetition factors are inverted: (n)9 --> 9(n)</li>
      * <li>T signals overpunch which is implicit in COBOL</li>
      * </ul>
-     * TODO We need to handle overpunch
      * @param picture the PLI picture
      * @return the COBOL picture
      */
