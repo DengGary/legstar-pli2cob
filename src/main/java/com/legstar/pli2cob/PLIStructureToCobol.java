@@ -1,11 +1,15 @@
 package com.legstar.pli2cob;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.antlr.runtime.tree.CommonTreeAdaptor;
 import org.antlr.runtime.tree.TreeAdaptor;
 import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
 
 import com.legstar.pli2cob.model.PLIDataDimension;
 import com.legstar.pli2cob.model.PLIDataItem;
@@ -19,72 +23,11 @@ import com.legstar.pli2cob.model.PLIDataItem.Scale;
  */
 public class PLIStructureToCobol {
 
-    /** Main template for a COBOL fragment. */
-    public static final StringTemplate _cobolFragmentST =
-        new StringTemplate(
-                "      *\n"
-                +  "      *\n"
-                +  "      *\n"
-                + "$dataDescriptions$"
-                + "\n");
-
-    /** COBOL data description template. */
-    public static final StringTemplate _dataDescriptionST =
-        new StringTemplate("$level$ $name$$attributes$.\n");
-
-    /** Attributes template. */
-    public static final StringTemplate _attributesST =
-        new StringTemplate("$occurs$$pictureUsage$");
-
-    /** Occurs template. */
-    public static final StringTemplate _occursST =
-        new StringTemplate(" OCCURS $maxOccurs$$dependingOn$");
-
-    /** Depending on template. */
-    public static final StringTemplate _dependingOnST =
-        new StringTemplate(" DEPENDING $dependingOn$");
-
-    /** Picture template for picture strings. */
-    public static final StringTemplate _pictureValueST =
-        new StringTemplate(" PIC $picture$");
-
-    /** Picture template for character. */
-    public static final StringTemplate _characterPictureValueST =
-        new StringTemplate(" PIC X($_length$)");
-
-    /** Picture template for varying character. */
-    public static final StringTemplate _characterVaryingPictureValueST =
-        new StringTemplate(".\n"
-                + "$_subLevel$ LEN PIC 9(4) BINARY.\n"
-                + "$_subLevel$ CHAR PIC X OCCURS 1 TO $_length$ DEPENDING ON LEN");
-
-    /** Picture template for graphic. */
-    public static final StringTemplate _graphicPictureValueST =
-        new StringTemplate(" PIC G($_length$) DISPLAY-1");
-
-    /** Picture template for widechar. */
-    public static final StringTemplate _widecharPictureValueST =
-        new StringTemplate(" PIC N($_length$)");
-
-    /** Single float usage template. */
-    public static final StringTemplate _singleFloatUsageST =
-        new StringTemplate(" COMP-1");
-
-    /** Double float usage template. */
-    public static final StringTemplate _doubleFloatUsageST =
-        new StringTemplate(" COMP-2");
-
-    /** Packed decimal picture and usage template. */
-    public static final StringTemplate _packedPictureUsageST =
-        new StringTemplate(" PIC S9($left_decimals$)$decimal_part$ PACKED-DECIMAL");
-
-    /** Used for decimal part with virtual decimal point. */
-    public static final StringTemplate _decimalPartST =
-        new StringTemplate("V9($right_decimals$)");
-
-    /** Binary picture and usage template. */
-    public static final StringTemplate _binaryPictureUsageST =
-        new StringTemplate(" PIC $signed$9($left_decimals$) COMP-5");
+    /** String templates storage group file name. */
+    public static final String STG_FILE_NAME = "/pli2cob.stg";
+    
+    /** String templates storage group. */
+    private StringTemplateGroup _stgGroup;
 
     /** A simplistic pattern for COBOL name compliance.*/
     private static final Pattern INVALID_COBOL_NAME_PATTERN =
@@ -94,11 +37,10 @@ public class PLIStructureToCobol {
     private static final Pattern REPETITION_FACTOR_PATTERN =
         Pattern.compile("\\(\\d+\\)");
 
-    /** Used to create indentation on data descriptions.*/
-    private static final String WHITESPACES = "                                        ";
-
     /**
      * Converts one or multiple PLI declare statements to COBOL data description clauses.
+     * <p/>
+     * Loads the antlr string templates group from a file on classpath.
      * @param ast the abstract syntax tree
      * @return a COBOL fragment with data descriptions
      * @throws CobolFormatException if conversion fails
@@ -106,9 +48,15 @@ public class PLIStructureToCobol {
     public String convert(
             final Object ast) throws CobolFormatException {
         TreeAdaptor adaptor = new CommonTreeAdaptor();
-        StringTemplate cobolFragmentST = _cobolFragmentST.getInstanceOf();
+        _stgGroup = new StringTemplateGroup(
+                new BufferedReader(
+                        new InputStreamReader(
+                                PLIStructureToCobol.class.getResourceAsStream(
+                                        STG_FILE_NAME))));
+        StringTemplate cobolFragmentST = _stgGroup.getInstanceOf("cobolFragment");
         setDataDescription(adaptor, cobolFragmentST, ast);
-        return cobolFragmentST.toString();
+        CobolFormatter formatter = new CobolFormatter();
+        return formatter.format(new StringReader(cobolFragmentST.toString()));
     }
 
     /**
@@ -118,7 +66,7 @@ public class PLIStructureToCobol {
      * @param astItem the abstract syntax subtree
      * @throws CobolFormatException if formatting fails
      */
-    public void setDataDescription(
+    protected void setDataDescription(
             final TreeAdaptor adaptor,
             final StringTemplate cobolFragmentST,
             final Object astItem) throws CobolFormatException {
@@ -139,10 +87,10 @@ public class PLIStructureToCobol {
      * @return an antlr string template
      * @throws CobolFormatException if formatting fails
      */
-    public StringTemplate getDataDescriptionST(
+    protected StringTemplate getDataDescriptionST(
             final TreeAdaptor adaptor, final Object astItem) throws CobolFormatException {
         PLIDataItem dataItem = new PLIDataItem(adaptor, astItem);
-        StringTemplate nodeST = _dataDescriptionST.getInstanceOf();
+        StringTemplate nodeST = _stgGroup.getInstanceOf("dataDescription");
         nodeST.setAttribute("level", formatLevel(dataItem.getLevel()));
         nodeST.setAttribute("name", formatName(dataItem.getName()));
         nodeST.setAttribute("attributes", getAttributesST(adaptor, dataItem));
@@ -156,9 +104,9 @@ public class PLIStructureToCobol {
      * @return an antlr string template
      * @throws CobolFormatException if formatting fails
      */
-    public StringTemplate getAttributesST(
+    protected StringTemplate getAttributesST(
             final TreeAdaptor adaptor, final PLIDataItem dataItem) throws CobolFormatException {
-        StringTemplate nodeST = _attributesST.getInstanceOf();
+        StringTemplate nodeST = _stgGroup.getInstanceOf("attributes");
         nodeST.setAttribute("pictureUsage", formatPictureAndUsage(dataItem));
         nodeST.setAttribute("occurs", formatOccurs(dataItem));
         return nodeST;
@@ -168,22 +116,16 @@ public class PLIStructureToCobol {
      * COBOL level numbers are in the 1-49 range. It is customary to format them
      * as 2 digits.
      * <p/>
-     * This adds white spaces to the left of the level number using these simple rules:
-     * <ul>
-     * <li>Level 1 is placed at position 8 (start of area A)</li>
-     * <li>Levels higher than 1 are placed at position 12 (start of area B)</li>
-     * </ul>
      * @param level the proposed level
      * @return a formatted level
      * @throws CobolFormatException if level is invalid for COBOL
      */
-    public String formatLevel(
+    protected String formatLevel(
             final int level) throws CobolFormatException {
         if (level < 1 || level > 49) {
             throw new CobolFormatException("Level " + level + " is invalid for COBOL");
         }
-        String indentedLevel = (level == 1) ? WHITESPACES.substring(0, 7) : WHITESPACES.substring(0, 11);
-        return indentedLevel + String.format("%1$02d", level);
+        return String.format("%1$02d", level);
     }
 
     /**
@@ -201,7 +143,7 @@ public class PLIStructureToCobol {
      * @return a valid COBOL name
      * @throws CobolFormatException if no valid COBOL name can be derived
      */
-    public String formatName(
+    protected String formatName(
             final String name) throws CobolFormatException {
         if (name == null || name.length() == 0) {
             throw new CobolFormatException("Empty name");
@@ -240,7 +182,7 @@ public class PLIStructureToCobol {
      * @return an occurs clause or null if not an array
      * @throws CobolFormatException if formatting fails
      */
-    public StringTemplate formatOccurs(
+    protected StringTemplate formatOccurs(
             final PLIDataItem dataItem) throws CobolFormatException {
         StringTemplate nodeST = null;
         if (dataItem.getDimensions().size() == 0) {
@@ -256,7 +198,7 @@ public class PLIStructureToCobol {
                             "Unsupported variable lower bound: " + dataItem.toString());
                 }
             }
-            nodeST = _occursST.getInstanceOf();
+            nodeST = _stgGroup.getInstanceOf("occurs");
             nodeST.setAttribute("maxOccurs", maxOccurs);
             if (dimension.getHbound().getRefer() != null) {
                 /* Make sure there is no lower bound */
@@ -264,14 +206,14 @@ public class PLIStructureToCobol {
                     throw new CobolFormatException(
                             "Unsupported variable upper bound: " + dataItem.toString());
                 }
-                StringTemplate dependingOnST = _dependingOnST.getInstanceOf();
+                StringTemplate dependingOnST = _stgGroup.getInstanceOf("dependingOn");
                 dependingOnST.setAttribute("dependingOn", dimension.getHbound().getRefer());
                 nodeST.setAttribute("dependingOn", dependingOnST);
             }
 
         }
         if (dataItem.getDimensions().size() > 1) {
-            nodeST = _occursST.getInstanceOf();
+            nodeST = _stgGroup.getInstanceOf("occurs");
             int maxOccurs = 1;
             for (PLIDataDimension dimension : dataItem.getDimensions()) {
                 if (dimension.getLbound() != null &&  dimension.getLbound().getBound() > 1) {
@@ -295,7 +237,7 @@ public class PLIStructureToCobol {
      * @return a picture clause
      * @throws CobolFormatException if formatting fails
      */
-    public StringTemplate formatPictureAndUsage(
+    protected StringTemplate formatPictureAndUsage(
             final PLIDataItem dataItem) throws CobolFormatException {
         if (dataItem.isString()) {
             StringTemplate nodeST = null;
@@ -306,8 +248,9 @@ public class PLIStructureToCobol {
             case VARYING:
                 switch(dataItem.getStringType()) {
                 case CHARACTER:
-                    nodeST = _characterVaryingPictureValueST.getInstanceOf();
+                    nodeST = _stgGroup.getInstanceOf("characterVaryingPictureValue");
                     nodeST.setAttribute("_subLevel", formatLevel(dataItem.getLevel() + 1));
+                    nodeST.setAttribute("_length", dataItem.getLength());
                     break;
                 default:
                     throw new CobolFormatException(
@@ -317,35 +260,37 @@ public class PLIStructureToCobol {
             default:
                 switch(dataItem.getStringType()) {
                 case GRAPHIC:
-                    nodeST = _graphicPictureValueST.getInstanceOf();
+                    nodeST = _stgGroup.getInstanceOf("graphicPictureValue");
+                    nodeST.setAttribute("_length", dataItem.getLength());
                     break;
                 case WIDECHAR:
-                    nodeST = _widecharPictureValueST.getInstanceOf();
+                    nodeST = _stgGroup.getInstanceOf("widecharPictureValue");
+                    nodeST.setAttribute("_length", dataItem.getLength());
                     break;
                 case BIT:
                     throw new CobolFormatException(
                             "Unsupported string type: " + dataItem.toString());
                 default:
                     if (dataItem.getPicture() == null) {
-                        nodeST = _characterPictureValueST.getInstanceOf();
+                        nodeST = _stgGroup.getInstanceOf("characterPictureValue");
+                        nodeST.setAttribute("_length", dataItem.getLength());
                     } else {
-                        nodeST = _pictureValueST.getInstanceOf();
+                        nodeST = _stgGroup.getInstanceOf("pictureValue");
                         nodeST.setAttribute("picture", cobolPictureFromPLI(dataItem.getPicture()));
                     }
                 }
                 break;
             }
-            nodeST.setAttribute("_length", dataItem.getLength());
             return nodeST;
         }
         if (dataItem.isNumeric()) {
             if (dataItem.getScale() == Scale.FLOAT) {
                 if (dataItem.getBase() == Base.DECIMAL) {
                     if (dataItem.getPrecision() <= 6) {
-                        StringTemplate nodeST = _singleFloatUsageST.getInstanceOf();
+                        StringTemplate nodeST = _stgGroup.getInstanceOf("singleFloatUsage");
                         return nodeST;
                     } else if (dataItem.getPrecision() <= 16) {
-                        StringTemplate nodeST = _doubleFloatUsageST.getInstanceOf();
+                        StringTemplate nodeST = _stgGroup.getInstanceOf("doubleFloatUsage");
                         return nodeST;
                     } else {
                         throw new CobolFormatException(
@@ -353,10 +298,10 @@ public class PLIStructureToCobol {
                     }
                 } else {
                     if (dataItem.getPrecision() <= 21) {
-                        StringTemplate nodeST = _singleFloatUsageST.getInstanceOf();
+                        StringTemplate nodeST = _stgGroup.getInstanceOf("singleFloatUsage");
                         return nodeST;
                     } else if (dataItem.getPrecision() <= 53) {
-                        StringTemplate nodeST = _doubleFloatUsageST.getInstanceOf();
+                        StringTemplate nodeST = _stgGroup.getInstanceOf("doubleFloatUsage");
                         return nodeST;
                     } else {
                         throw new CobolFormatException(
@@ -365,11 +310,11 @@ public class PLIStructureToCobol {
                 }
             } else {
                 if (dataItem.getBase() == Base.DECIMAL) {
-                    StringTemplate nodeST = _packedPictureUsageST.getInstanceOf();
+                    StringTemplate nodeST = _stgGroup.getInstanceOf("packedPictureUsage");
                     nodeST.setAttribute("left_decimals",
                             dataItem.getPrecision() - dataItem.getScalingFactor());
                     if (dataItem.getScalingFactor() > 0) {
-                        StringTemplate subNodeST = _decimalPartST.getInstanceOf();
+                        StringTemplate subNodeST = _stgGroup.getInstanceOf("decimalPart");
                         subNodeST.setAttribute("right_decimals", dataItem.getScalingFactor());
                         nodeST.setAttribute("decimal_part", subNodeST);
                     }
@@ -377,11 +322,11 @@ public class PLIStructureToCobol {
                 } else {
                     if (dataItem.isSigned()) {
                         if (dataItem.getPrecision() <= 7) {
-                            StringTemplate nodeST = _characterPictureValueST.getInstanceOf();
+                            StringTemplate nodeST = _stgGroup.getInstanceOf("characterPictureValue");
                             nodeST.setAttribute("_length", 1);
                             return nodeST;
                         } else {
-                            StringTemplate nodeST = _binaryPictureUsageST.getInstanceOf();
+                            StringTemplate nodeST = _stgGroup.getInstanceOf("binaryPictureUsage");
                             nodeST.setAttribute("signed", "S");
                             if (dataItem.getPrecision() <= 15) {
                                 nodeST.setAttribute("left_decimals", 4);
@@ -394,11 +339,11 @@ public class PLIStructureToCobol {
                         }
                     } else {
                         if (dataItem.getPrecision() <= 8) {
-                            StringTemplate nodeST = _characterPictureValueST.getInstanceOf();
+                            StringTemplate nodeST = _stgGroup.getInstanceOf("characterPictureValue");
                             nodeST.setAttribute("_length", 1);
                             return nodeST;
                         } else {
-                            StringTemplate nodeST = _binaryPictureUsageST.getInstanceOf();
+                            StringTemplate nodeST = _stgGroup.getInstanceOf("binaryPictureUsage");
                             if (dataItem.getPrecision() <= 16) {
                                 nodeST.setAttribute("left_decimals", 4);
                             } else if (dataItem.getPrecision() <= 32) {
@@ -424,7 +369,7 @@ public class PLIStructureToCobol {
      * @param picture the PLI picture
      * @return the COBOL picture
      */
-    public String cobolPictureFromPLI(final String picture) {
+    protected String cobolPictureFromPLI(final String picture) {
         if (picture == null || picture.length() == 0) {
             return picture;
         }
@@ -439,7 +384,7 @@ public class PLIStructureToCobol {
      * @return a string with repetition factors inverted
      * TODO scaling factors are missed for repetition factors
      */
-    public String invertRepetitionFactor(final String picture) {
+    protected String invertRepetitionFactor(final String picture) {
         StringBuilder sb = new StringBuilder();
         int current = 0;
         Matcher matcher = REPETITION_FACTOR_PATTERN.matcher(picture);
@@ -462,7 +407,7 @@ public class PLIStructureToCobol {
      * @param picture the PLI picture
      * @return a picture with overpunch replaced
      */
-    public String resolveOverpunch(final String picture) {
+    protected String resolveOverpunch(final String picture) {
         if (picture.charAt(0) == 'T') {
             return '9' + picture.substring(1) + " LEADING";
         }
