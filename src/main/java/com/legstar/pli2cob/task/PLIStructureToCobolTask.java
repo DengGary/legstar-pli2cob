@@ -7,17 +7,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.antlr.runtime.ANTLRReaderStream;
-import org.antlr.runtime.CommonTokenStream;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.tree.CommonTree;
-import org.antlr.runtime.tree.DOTTreeGenerator;
-import org.antlr.stringtemplate.StringTemplate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.tools.ant.BuildException;
@@ -26,11 +19,10 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 
 import com.legstar.pli2cob.CobolFormatException;
-import com.legstar.pli2cob.PLIStructureLexer;
-import com.legstar.pli2cob.PLIStructureParser;
+import com.legstar.pli2cob.PLIStructureLexingException;
+import com.legstar.pli2cob.PLIStructureParsingException;
+import com.legstar.pli2cob.PLIStructureReadingException;
 import com.legstar.pli2cob.PLIStructureToCobol;
-import com.legstar.pli2cob.PLIStructureTreeNormalizer;
-import com.legstar.pli2cob.PLIStructureParser.script_return;
 
 /**
  * PLI to COBOL structure ANT Task.
@@ -72,23 +64,36 @@ public class PLIStructureToCobolTask extends Task {
 
         checkParameters();
 
-        Iterator < FileSet > itor = _fileSets.iterator();
-        while (itor.hasNext()) {
-            FileSet fileset = itor.next();
+        try {
+            PLIStructureToCobol pli2cob = new PLIStructureToCobol();
+            Iterator < FileSet > itor = _fileSets.iterator();
+            while (itor.hasNext()) {
+                FileSet fileset = itor.next();
 
-            DirectoryScanner scanner = fileset.getDirectoryScanner(getProject());
-            scanner.scan();
-            String[] files = scanner.getIncludedFiles();
-            for (int i = 0; i < files.length; i++) {
-                File pliSourceFile = new File(fileset.getDir(getProject()), files[i]);
-                _log.info("Converting PLI file: " + pliSourceFile);
-                String cobolSource = convert(normalize(parse(lexify(fileToString(pliSourceFile)))));
-                File cobolSourceFile = stringToFile(getTargetDir(), pliSourceFile, cobolSource);
-                _log.info("Created COBOL file: " + cobolSourceFile);
+                DirectoryScanner scanner = fileset.getDirectoryScanner(getProject());
+                scanner.scan();
+                String[] files = scanner.getIncludedFiles();
+                for (int i = 0; i < files.length; i++) {
+                    File pliSourceFile = new File(fileset.getDir(getProject()), files[i]);
+                    _log.info("Converting PLI file: " + pliSourceFile);
+                    String cobolSource = pli2cob.execute(fileToString(pliSourceFile));
+                    File cobolSourceFile = stringToFile(getTargetDir(), pliSourceFile, cobolSource);
+                    _log.info("Created COBOL file: " + cobolSourceFile);
+                }
             }
+        } catch (IllegalStateException e) {
+            throw (new BuildException(e));
+        } catch (PLIStructureLexingException e) {
+            throw (new BuildException(e));
+        } catch (PLIStructureParsingException e) {
+            throw (new BuildException(e));
+        } catch (CobolFormatException e) {
+            throw (new BuildException(e));
+        } catch (PLIStructureReadingException e) {
+            throw (new BuildException(e));
         }
     }
-    
+
     /**
      * Check that we have enough parameters to get started.
      */
@@ -110,12 +115,20 @@ public class PLIStructureToCobolTask extends Task {
             throw (new BuildException(
                     getTargetDir() + " is not a directory or is not writable"));
         }
+        
+        if (_log.isDebugEnabled()) {
+            _log.debug("Target folder: " + getTargetDir());
+            _log.debug("Class loader chain");
+            debugLoaderChain(this.getClass().getClassLoader());
+            _log.debug("Antlr loader chain");
+            debugLoaderChain(antlr.CharScanner.class.getClassLoader());
+        }
     }
-    
+
     /**
-     * Reads a file content (assumed to a characters) into a String.
+     * Reads a file content (assumed to be characters) into a String.
      * @param file the input file
-     * @return the cointent as a String
+     * @return the content as a String
      */
     private String fileToString(final File file) {
         String errorMessage = "Unable to read file " + file;
@@ -144,7 +157,7 @@ public class PLIStructureToCobolTask extends Task {
             }
         }
     }
-    
+
     /**
      * Creates a COBOL file converted from a PLI source.
      * @param targetDir the target directory we know exists
@@ -176,90 +189,6 @@ public class PLIStructureToCobolTask extends Task {
     }
 
     /**
-     * Apply the lexer to produce a token stream from source.
-     * @param source the source code
-     * @return an antlr token stream
-     */
-    public CommonTokenStream lexify(final String source) {
-        if (_log.isDebugEnabled()) {
-            debug("Lexing source:", source);
-        }
-        String errorMessage = "Lexing source: " + source + " failed.";
-        try {
-            PLIStructureLexer lex = new PLIStructureLexer(
-                    new ANTLRReaderStream(new StringReader(source)));
-            CommonTokenStream tokens = new CommonTokenStream(lex);
-            if (lex.getNumberOfSyntaxErrors() != 0 || tokens == null) {
-                _log.error(errorMessage);
-                throw (new BuildException(errorMessage));
-            }
-            return tokens;
-        } catch (IOException e) {
-            _log.error(errorMessage, e);
-            throw (new BuildException(errorMessage));
-        }
-    }
-
-    /**
-     * Apply Parser to produce an abstract syntax tree from a token stream. 
-     * @param tokens the stream token produced by lexer
-     * @return an antlr abstract syntax tree
-     */
-    public CommonTree parse(final CommonTokenStream tokens) {
-        if (_log.isDebugEnabled()) {
-            debug("Parsing tokens:", tokens.toString());
-        }
-        String errorMessage = "Parsing token stream: " + tokens + " failed.";
-        try {
-            PLIStructureParser parser = new PLIStructureParser(tokens);
-            script_return parserResult = parser.script();
-            if (parser.getNumberOfSyntaxErrors() != 0 || parserResult == null) {
-                _log.error(errorMessage);
-                throw (new BuildException(errorMessage));
-            }
-            return (CommonTree) parserResult.getTree();
-        } catch (RecognitionException e) {
-            _log.error(errorMessage, e);
-            throw (new BuildException(errorMessage));
-        }
-    }
-
-    /**
-     * Apply Normalizer to produce a normalized abstract syntax tree from source. 
-     * @param ast the abstract syntax tree produced by parser (flat)
-     * @return an antlr abstract syntax tree where nodes are organized in a hierarchy
-     */
-    public CommonTree normalize(final CommonTree ast) {
-        if (_log.isDebugEnabled()) {
-            debug("Flat abstract syntax tree:", ast);
-        }
-        return PLIStructureTreeNormalizer.normalize(ast);
-    }
-
-    /**
-     * Final conversion starting from normalized abstract syntax tree. 
-     * @param ast the abstract syntax tree produced by normalizer (hierarchy)
-     * @return a PLI source
-     */
-    public String convert(final CommonTree ast) {
-        if (_log.isDebugEnabled()) {
-            debug("Normalized abstract syntax tree:", ast);
-        }
-        String errorMessage = "Converting abstract syntax tree: " + ast + " failed.";
-        try {
-            PLIStructureToCobol converter = new PLIStructureToCobol();
-            String cobolSource = converter.convert(ast);
-            if (_log.isDebugEnabled()) {
-                debug("COBOL structure produced:", cobolSource);
-            }
-            return cobolSource;
-        } catch (CobolFormatException e) {
-            _log.error(errorMessage, e);
-            throw (new BuildException(errorMessage));
-        }
-    }
-
-    /**
      * @return a new FileSet
      */
     public FileSet createFileset() {
@@ -281,28 +210,18 @@ public class PLIStructureToCobolTask extends Task {
     public void setTargetDir(final File targetDir) {
         _targetDir = targetDir;
     }
-    
-    /**
-     * Produce long text in a delimited debug zone.
-     * @param title the debug text title
-     * @param text the text itself
-     */
-    private void debug(final String title, final String text) {
-        _log.debug(title);
-        _log.debug(text);
-        _log.debug("----------------------------------------------------------------");
-    }
 
     /**
-     * Produce a graph of an abstract syntax tree.
-     * @param title the debug text title
-     * @param ast the abstract syntax tree
+     * Help debug class loading issues.
+     * @param startCl a class loader to start from
      */
-    private void debug(final String title, final CommonTree ast) {
-        DOTTreeGenerator gen = new DOTTreeGenerator();
-        StringTemplate st = gen.toDOT(ast);
-        _log.debug(title);
-        _log.debug(st.toString());
-        _log.debug("----------------------------------------------------------------");
+    private void debugLoaderChain(final ClassLoader startCl) {
+        _log.debug("--- Class loader chain starts");
+        ClassLoader cl = startCl;
+        while (cl != null) {
+            _log.debug(cl);
+            cl = cl.getParent();
+        }
+        _log.debug("--- chain ends");
     }
 }

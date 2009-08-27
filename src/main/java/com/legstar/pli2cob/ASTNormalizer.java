@@ -19,12 +19,12 @@ import org.antlr.runtime.tree.TreeAdaptor;
  * higher level than its parent.
  *
  */
-public final class PLIStructureTreeNormalizer {
+public final class ASTNormalizer {
 
     /**
      * Utility class. No instantiation.
      */
-    private PLIStructureTreeNormalizer() {
+    private ASTNormalizer() {
 
     }
 

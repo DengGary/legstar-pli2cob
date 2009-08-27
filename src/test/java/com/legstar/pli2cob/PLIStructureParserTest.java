@@ -626,7 +626,7 @@ public class PLIStructureParserTest extends AbstractTester {
         );
 
     }
-
+    
     /**
      * A generic test helper that takes a source fragment and checks the result.
      * @param source the source fragment
