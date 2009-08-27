@@ -4,18 +4,18 @@ import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.Tree;
 
 /**
- * Test PLIStructureTreeNormalizer class.
+ * Test ASTNormalizer class.
  *
  */
-public class PLIStructureTreeNormalizerTest extends AbstractTester {
+public class ASTNormalizerTest extends AbstractTester {
 
     /**
      * Check what happens if nothing passed.
      */
     public void testInstantiation() {
-        Tree ast = PLIStructureTreeNormalizer.normalize(null);
+        Tree ast = ASTNormalizer.normalize(null);
         assertTrue(ast == null);
-        ast = PLIStructureTreeNormalizer.normalize(parse(""));
+        ast = ASTNormalizer.normalize(parse(""));
         assertTrue(ast == null);
     }
 
@@ -214,7 +214,7 @@ public class PLIStructureTreeNormalizerTest extends AbstractTester {
      * @param expected the expected sub graph
      */
     private void normalizeCheck(final String source, final String expected) {
-        CommonTree ast = normalize(source);
+        CommonTree ast = parseAndNormalize(source);
         String graph = getGraph(ast);
         assertEquals(expected, getSubGraph(graph));
     }

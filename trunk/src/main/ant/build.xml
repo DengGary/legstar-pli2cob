@@ -13,9 +13,9 @@
 
         <!-- Location of output COBOL source code (must exist)  -->
         <property name="cobol.dir" value="cobol"/>
-    	<mkdir dir="${cobol.dir}"/>
+        <mkdir dir="${cobol.dir}"/>
 
-    	<!-- PLI to COBOL structure converter ant task  -->
+        <!-- PLI to COBOL structure converter ant task  -->
         <taskdef name="pli2cob"
             classname="com.legstar.pli2cob.task.PLIStructureToCobolTask">
             <classpath>
@@ -24,7 +24,7 @@
             </classpath>
         </taskdef>
     
-  </target>
+    </target>
 
     <!-- ===========================================================  -->
     <!-- Generate COBOL data descriptions
