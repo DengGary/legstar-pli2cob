@@ -56,6 +56,9 @@ public class PLIDataItem extends AbstractPLIData {
 
     /** True for signed numerics.*/
     private boolean _isSigned;
+    
+    /** The initial clause content.*/
+    private String _value;
 
     /** Dimensions list. */
     private List < PLIDataDimension > _dimensions = new ArrayList < PLIDataDimension >();
@@ -88,6 +91,7 @@ public class PLIDataItem extends AbstractPLIData {
         setNumericAttributes(adaptor, astItem);
         setStringAttributes(adaptor, astItem);
         setPictureAttributes(adaptor, astItem);
+        setValue(adaptor, astItem);
     }
 
     /**
@@ -186,6 +190,13 @@ public class PLIDataItem extends AbstractPLIData {
      */
     public boolean isSigned() {
         return _isSigned;
+    }
+
+    /**
+     * @return the initial clause content
+     */
+    public String getValue() {
+        return _value;
     }
 
     /**
@@ -362,6 +373,21 @@ public class PLIDataItem extends AbstractPLIData {
         }
     }
 
+    /**
+     * Set the value attribute corresponding to the PLI INITIAL clause of
+     * a data item.
+     * <p/>
+     * TODO There are cases where the PLI value would not be acceptable
+     * to COBOL. For instance delimiting QUOTES or APOSTROPHES might need to
+     * be adjusted.
+     * @param adaptor the tree navigator
+     * @param astItem the data item abstract syntax subtree
+     */
+    private void setValue(final TreeAdaptor adaptor, final Object astItem) {
+        _value = (String) getAttributeValue(
+                adaptor, astItem, PLIStructureParser.VALUE, null);
+    }
+
     /** Floating point or fixed numerics. */
     public enum Scale { FLOAT, FIXED };
 
@@ -415,6 +441,10 @@ public class PLIDataItem extends AbstractPLIData {
         if (getPicture() != null) {
             sb.append(", ");
             sb.append("picture : " + getPicture());
+        }
+        if (getValue() != null) {
+            sb.append(", ");
+            sb.append("value : " + getValue());
         }
         sb.append("]");
         return sb.toString();

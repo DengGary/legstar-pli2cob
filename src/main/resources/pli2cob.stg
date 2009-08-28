@@ -17,8 +17,8 @@ dataDescription(level,name,attributes) ::= <<
 <level> <name><attributes>.<\n>
 >>
 
-attributes(occurs,pictureUsage) ::= <<
-<occurs><pictureUsage>
+attributes(occurs,pictureUsage,value) ::= <<
+<occurs><pictureUsage><value>
 >>
 
 occurs(maxOccurs,dependingOn) ::= <<
@@ -69,4 +69,8 @@ characterVaryingPictureValue(_subLevel,_length) ::= <<
 
 pictureValue(picture) ::= <<
  PIC <picture>
+>>
+
+value(_value) ::= <<
+ VALUE <_value>
 >>

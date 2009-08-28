@@ -628,6 +628,24 @@ public class PLIStructureParserTest extends AbstractTester {
     }
     
     /**
+     * Test with a simple initial statement.
+     */
+    public void testInitialStatement() {
+        parseCheck(
+                "Declare Astring char(20) init('abcd');",
+
+                "  n0 -> n1 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n1 -> n2 // \"NAME\" -> \"Astring\""
+                + "  n0 -> n3 // \"DATA_ITEM\" -> \"STRING\""
+                + "  n3 -> n4 // \"STRING\" -> \"CHARACTER\""
+                + "  n0 -> n5 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n5 -> n6 // \"LENGTH\" -> \"20\""
+                + "  n0 -> n7 // \"DATA_ITEM\" -> \"VALUE\""
+                + "  n7 -> n8 // \"VALUE\" -> \"'abcd'\""
+        );
+     }
+
+    /**
      * A generic test helper that takes a source fragment and checks the result.
      * @param source the source fragment
      * @param expected the expected sub graph
