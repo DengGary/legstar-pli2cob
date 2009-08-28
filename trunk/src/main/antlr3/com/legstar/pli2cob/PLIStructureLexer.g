@@ -29,6 +29,11 @@ PICTURE_KEYWORD: 'PICTURE' | 'picture' | 'Picture' |  'PIC' | 'pic' | 'Pic';
 DIMENSION_KEYWORD: 'DIMENSION' | 'dimension' | 'Dimension' |  'DIM' | 'dim' | 'Dim';
 ALIGNED_KEYWORD: 'ALIGNED' | 'aligned' | 'Aligned';
 UNALIGNED_KEYWORD: 'UNALIGNED' | 'unaligned' | 'Unaligned';
+INITIAL_KEYWORD: 'INITIAL' | 'initial' | 'Initial' | 'INIT' | 'Init' | 'init';
+AUTOMATIC_KEYWORD: 'AUTOMATIC' | 'automatic' | 'Automatic' | 'AUTO' | 'Auto' | 'auto';
+STATIC_KEYWORD: 'STATIC' | 'Static' | 'static';
+BASED_KEYWORD: 'BASED' | 'Based' | 'based';
+CONTROLLED_KEYWORD: 'CONTROLLED' | 'controlled' | 'Controlled' | 'CTL' | 'ctl' | 'Ctl';
 
 /*------------------------------------------------------------------
  * Character lexicon

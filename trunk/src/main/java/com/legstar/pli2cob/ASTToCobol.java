@@ -25,7 +25,7 @@ public class ASTToCobol {
 
     /** String templates storage group file name. */
     public static final String STG_FILE_NAME = "/pli2cob.stg";
-    
+
     /** String templates storage group. */
     private StringTemplateGroup _stgGroup;
 
@@ -82,6 +82,8 @@ public class ASTToCobol {
 
     /**
      * Produce a COBOL data description for a node.
+     * <p/>
+     * Not all PLI constructs are supported. Unsupported ones are ignored.
      * @param adaptor the antlr tree adaptor in use
      * @param astItem the abstract syntax node
      * @return an antlr string template
@@ -90,11 +92,31 @@ public class ASTToCobol {
     protected StringTemplate getDataDescriptionST(
             final TreeAdaptor adaptor, final Object astItem) throws CobolFormatException {
         PLIDataItem dataItem = new PLIDataItem(adaptor, astItem);
+        if (!checkAcceptance(dataItem)) {
+            return null;
+        }
         StringTemplate nodeST = _stgGroup.getInstanceOf("dataDescription");
         nodeST.setAttribute("level", formatLevel(dataItem.getLevel()));
         nodeST.setAttribute("name", formatName(dataItem.getName()));
         nodeST.setAttribute("attributes", getAttributesST(adaptor, dataItem));
         return nodeST;
+    }
+    
+    /**
+     * Check if the PLI construct is supported (i.e. can be safely converted to COBOL).
+     * <p/>
+     * Items rejected:
+     * <ul>
+     * <li>Elementary string item with size zero</li>
+     * </ul>
+     * @param dataItem the PLI data item
+     * @return true if the data item can be safely converted
+     */
+    protected boolean checkAcceptance(final PLIDataItem dataItem) {
+        if (!dataItem.isGroup() && dataItem.isString() && dataItem.getLength() == 0) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -107,8 +129,9 @@ public class ASTToCobol {
     protected StringTemplate getAttributesST(
             final TreeAdaptor adaptor, final PLIDataItem dataItem) throws CobolFormatException {
         StringTemplate nodeST = _stgGroup.getInstanceOf("attributes");
-        nodeST.setAttribute("pictureUsage", formatPictureAndUsage(dataItem));
         nodeST.setAttribute("occurs", formatOccurs(dataItem));
+        nodeST.setAttribute("pictureUsage", formatPictureAndUsage(dataItem));
+        nodeST.setAttribute("value", formatValue(dataItem));
         return nodeST;
     }
 
@@ -421,6 +444,23 @@ public class ASTToCobol {
             return  'S' + picture.substring(0, picture.length() - 1) + " SIGN SEPARATE";
         }
         return picture;
+    }
+
+    /**
+     * Items with non null values will get a COBOL VALUE clause.
+     * @param dataItem data item model
+     * @return a value clause
+     * @throws CobolFormatException if formatting fails
+     */
+    protected StringTemplate formatValue(
+            final PLIDataItem dataItem) throws CobolFormatException {
+        StringTemplate nodeST = null;
+        if (dataItem.getValue() == null) {
+            return null;
+        }
+        nodeST = _stgGroup.getInstanceOf("value");
+        nodeST.setAttribute("_value", dataItem.getValue());
+        return nodeST;
     }
 
 }

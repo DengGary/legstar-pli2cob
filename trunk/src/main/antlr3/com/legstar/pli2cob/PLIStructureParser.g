@@ -54,6 +54,11 @@ tokens {
   DIMENSION;
   HBOUND;
   LBOUND;
+  VALUE;
+  AUTOMATIC;
+  STATIC;
+  BASED;
+  CONTROLLED;
 }
 
 /*------------------------------------------------------------------
@@ -95,6 +100,8 @@ item_attribute:
     | picture_attribute
     | arithmetic_attribute
     | alignment_attribute
+    | initial_attribute
+    | storage_attribute
     ;
 
 terminator: SEMICOLON | EOF;
@@ -208,3 +215,22 @@ alignment_attribute:
     ALIGNED_KEYWORD -> ^(VARYING NONVARYING)
     | UNALIGNED_KEYWORD -> ^(VARYING NONVARYING)
     ;
+
+/*------------------------------------------------------------------
+ * -- Initial attribute
+*------------------------------------------------------------------*/
+initial_attribute:
+    INITIAL_KEYWORD LEFT_PAREN (v=STRING_LITERAL | v=SIGNED_INTEGER | v=UNSIGNED_INTEGER | v=FLOAT) RIGHT_PAREN
+    ->^(VALUE $v)
+    ;
+
+/*------------------------------------------------------------------
+ * -- Storage attribute
+*------------------------------------------------------------------*/
+storage_attribute:
+    AUTOMATIC_KEYWORD -> ^(STORAGE AUTOMATIC)
+    | STATIC_KEYWORD -> ^(STORAGE STATIC)
+    | BASED_KEYWORD -> ^(STORAGE BASED)
+    | CONTROLLED_KEYWORD -> ^(STORAGE CONTROLLED)
+    ;
+
