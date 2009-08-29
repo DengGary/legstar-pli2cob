@@ -10,11 +10,14 @@ import org.antlr.runtime.tree.CommonTreeAdaptor;
 import org.antlr.runtime.tree.TreeAdaptor;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.legstar.pli2cob.model.PLIDataDimension;
 import com.legstar.pli2cob.model.PLIDataItem;
 import com.legstar.pli2cob.model.PLIDataItem.Base;
 import com.legstar.pli2cob.model.PLIDataItem.Scale;
+import com.legstar.pli2cob.model.PLIDataItem.StringType;
 
 /**
  * Produce COBOL fragments from PLI structures after they are parsed as
@@ -36,6 +39,9 @@ public class ASTToCobol {
     /** Detects repetition factors in PLI picture.*/
     private static final Pattern REPETITION_FACTOR_PATTERN =
         Pattern.compile("\\(\\d+\\)");
+
+    /** Logger. */
+    private final Log _log = LogFactory.getLog(getClass());
 
     /**
      * Converts one or multiple PLI declare statements to COBOL data description clauses.
@@ -101,20 +107,38 @@ public class ASTToCobol {
         nodeST.setAttribute("attributes", getAttributesST(adaptor, dataItem));
         return nodeST;
     }
-    
+
     /**
      * Check if the PLI construct is supported (i.e. can be safely converted to COBOL).
      * <p/>
      * Items rejected:
      * <ul>
      * <li>Elementary string item with size zero</li>
+     * <li>Elementary bit items with length%8 != 0</li>
      * </ul>
      * @param dataItem the PLI data item
      * @return true if the data item can be safely converted
+     * @throws CobolFormatException if errors cannot be recovered from
      */
-    protected boolean checkAcceptance(final PLIDataItem dataItem) {
-        if (!dataItem.isGroup() && dataItem.isString() && dataItem.getLength() == 0) {
-            return false;
+    protected boolean checkAcceptance(final PLIDataItem dataItem) throws CobolFormatException {
+        if (!dataItem.isGroup()) {
+            if (dataItem.isString()) {
+                if (dataItem.getLength() == 0) {
+                    _log.warn("Zero length string items are not supported. "
+                            + dataItem + " will be ignored.");
+                    return false;
+                }
+                if (dataItem.getStringType() == StringType.BIT) {
+                    if (dataItem.getLength() % 8 == 0) {
+                        _log.info("Bit string will be converted to PIC X. Item="
+                                + dataItem);
+                        return true;
+                    } else {
+                        throw new CobolFormatException("Bit string with non 8 multiple length not supported.  Item="
+                                + dataItem);
+                    }
+                }
+            }
         }
         return true;
     }
@@ -291,8 +315,9 @@ public class ASTToCobol {
                     nodeST.setAttribute("_length", dataItem.getLength());
                     break;
                 case BIT:
-                    throw new CobolFormatException(
-                            "Unsupported string type: " + dataItem.toString());
+                    nodeST = _stgGroup.getInstanceOf("characterPictureValue");
+                    nodeST.setAttribute("_length", dataItem.getLength() / 8);
+                    break;
                 default:
                     if (dataItem.getPicture() == null) {
                         nodeST = _stgGroup.getInstanceOf("characterPictureValue");

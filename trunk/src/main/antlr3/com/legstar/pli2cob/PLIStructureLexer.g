@@ -7,6 +7,7 @@ lexer grammar PLIStructureLexer;
 
 /*------------------------------------------------------------------
  * Supported keywords
+ * When adding new keywords also update parser to accept them as data item names
  *------------------------------------------------------------------*/
 DECLARE_KEYWORD: 'DECLARE' | 'declare' | 'Declare' | 'DCL' | 'dcl' | 'Dcl';
 REAL_KEYWORD: 'REAL' | 'real' | 'Real';
@@ -53,6 +54,7 @@ STRING_LITERAL: STRING_DELIMITER NONCONTROL_CHAR* STRING_DELIMITER;
 SIGNED_INTEGER: SIGN UNSIGNED_INTEGER;
 UNSIGNED_INTEGER: DIGIT+;
 FLOAT: (UNSIGNED_INTEGER | SIGNED_INTEGER) (FRACTION EXPONENT? | EXPONENT);
+ASTERISK: '*';
 
 /*------------------------------------------------------------------
  * Whitespaces, newlines and comments
