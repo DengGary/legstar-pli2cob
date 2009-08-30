@@ -1,0 +1,109 @@
+﻿#summary Aligned/Unaligned data items handling.
+#labels Phase-Requirements,Featured
+
+= Introduction =
+
+While it is relatively straightforward to map elementary data items from PLI to COBOL, it is harder to map structures and unions.
+
+One major issue is that PLI and COBOL compilers do not handle data alignment for structures in the same way.
+
+= PLI and COBOL handling of in memory alignement=
+
+In both COBOL and PLI data items have alignment requirements which vary depending on data type and alignment attributes (ALIGNED/UNALIGNED for PLI, SYNCHRONIZED for COBOL).
+
+When data is laid out by compilers, the alignment requirements might result in data items being shifted in order to start on certain boundaries (byte, halfword, fullword or doubleword).
+
+This shifting is identical to adding slack bytes, or bits, after the previous data item in order to start at the predefined boundary.
+
+The following table shows that for data types supported by COBOL, the alignment requirements for elementary data items are identical between PLI and COBOL.
+
+|| *PLI data type*                                    || *Storage (Bytes)*      || *ALIGNED*   || *UNALIGNED* || *COBOL data type*      || *SYNCHRONIZED* || 
+|| BIT(n)                                             || n bits                 || Byte        || Bit         || N/A                    || N/A            ||
+|| CHAR(n)                                            || n                      || Byte        || Byte        || PIC X(n)               || Byte           ||
+|| CHAR(n) VARZ                                       || n + 1                  || Byte        || Byte        || N/A                    || N/A            ||
+|| G(n)                                               || 2n                     || Byte        || Byte        || PIC G(n) DISPLAY-1     || Byte           ||
+|| G(n) VARZ                                          || 2n + 2                 || Byte        || Byte        || N/A                    || N/A            ||
+|| WCHAR(n)                                           || 2n                     || Byte        || Byte        || PIC N(n)               || Byte           ||
+|| WCHAR(n) VARZ                                      || 2n + 2                 || Byte        || Byte        || N/A                    || N/A            ||
+|| PICTURE                                            || Number of PIC chars(*) || Byte        || Byte        || PIC '...'              || Byte           ||
+|| DEC FIXED(p,q)                                     || CEIL((p+1)/2)          || Byte        || Byte        || PIC S9(p-q)V9(q) COMP-3|| Byte           || 
+|| BIN FIXED(p,q) [SIGNED && 1<=p<=7] or [1<=p<=8]    || 1                      || Byte        || Byte        || N/A                    || N/A            ||
+|| BIT(n) VAR                                         || 2 bytes + n bits       || Halfword    || Byte        || N/A                    || N/A            ||
+|| CHAR(n) VAR                                        || n + 2                  || Halfword    || Byte        || N/A                    || N/A            ||
+|| G(n) VAR                                           || 2n + 2                 || Halfword    || Byte        || N/A                    || N/A            ||
+|| WCHAR(n) VAR                                       || 2n + 2                 || Halfword    || Byte        || N/A                    || N/A            ||
+|| BIN FIXED(p,q) [SIGNED && 8<=p<=15] or [9<=p<=16]  || 2                      || Halfword    || Byte        || PIC S9(4) COMP-5       || Halfword       ||
+|| BIN FIXED(p,q) [SIGNED && 16<=p<=31] or [17<=p<=32]|| 4                      || Fullword    || Byte        || PIC S9(9) COMP-5       || Fullword       ||
+|| BIN FLOAT(p) [1<=p<=21]                            || 4                      || Fullword    || Byte        || COMP-1                 || Fullword       ||
+|| DEC FLOAT(p) [1<=p<=6] or [1<=p<=7 && DFP]         || 4                      || Fullword    || Byte        || COMP-1                 || Fullword       ||
+|| BIN FIXED(p,q) [SIGNED && 32<=p<=63] or [33<=p<=64]|| 8                      || Doubleword  || Byte        || PIC S9(18) COMP-5      || Fullword       ||
+|| BIN FLOAT(p) [22<=p<=53]                           || 8                      || Doubleword  || Byte        || COMP-2                 || Doubleword     ||
+|| DEC FLOAT(p) [8<=p<=16] or [7<=p<=16 && DFP]       || 8                      || Doubleword  || Byte        || COMP-2                 || Doubleword     ||
+|| BIN FLOAT(p) [54<=p]                               || 16                     || Doubleword  || Byte        || N/A                    || N/A            ||
+|| DEC FLOAT(p) [17<=p]                               || 16                     || Doubleword  || Byte        || N/A                    || N/A            ||
+
+(*) Other than V, K and F
+
+Although elementary data items might have the same alignment requirements, alignment strategies applied by the PLI and COBOL compilers for structures differ. data laid out by one compiler might not be enterpreted correctly by the other (see http://publibz.boulder.ibm.com/epubs/pdf/ceea4160.pdf).
+
+
+== Default alignment attribute values ==
+
+For PLI, UNALIGNED is the default for bit data, character data, graphic data, widechar data and numeric character data. ALIGNED is the default for all other types of data. This is important because it means some widely used data types, such as FIXED BINARY, are ALIGNED by default.
+
+For COBOL, all data types are not SYNCHRONIZED by default.
+
+== Alignment attribute value inheritance ==
+
+In PLI, ALIGNED/UNALIGNED attributes are inherited from a parent in a structure. Childs can override the parent aligment by explicitly setting the attribute. Example:
+
+In COBOL, SYNCHRONIZED can be inherited from a parent but only at the 01 level. Child items have no way to override the SYNCHRONIZED attribute.
+
+== Structures mapping ==
+
+This is probably where the most differences exist between PLI and COBOL alignment handling.
+
+== COBOL structure mapping strategy ==
+
+COBOL does not attempt to optimize the padding needed to satisfy the alignment requirements.
+
+All structures start on a doubleword boundary.
+
+Then each item from the structure is taken in turn (in the order they appear in the structure) and the item is shifted if necessary by as much bytes as needed to satisfy the alignement requirement.
+
+Applying this strategy to structure:
+{{{
+        01 A SYNC.                        
+       * STARTS ON BYTE=0                 
+            03 B PIC X(1).                
+       * STARTS ON BYTE=2, 1 PADDING CHAR 
+            03 C PIC S9(4) COMP.          
+            03 D.                         
+       * STARTS ON BYTE=4                 
+               04 E PIC X(1).             
+       * STARTS ON BYTE=8, 3 PADDING CHAR 
+               04 F PIC S9(9) COMP-5.     
+}}}
+
+The result is 12 bytes of storage used with 4 padding bytes and 8 useful bytes.
+
+== PLI structure mapping strategy ==
+
+PLI has a sophisticated strategy for structures mapping. The objective is to minimize the number of padding characters.
+
+The algorithm is described here http://publibfp.boulder.ibm.com/epubs/pdf/ibm3lr70.pdf.
+
+Applied to the previous structure, the memory occupation is only 9 bytes but the structure does not start on a fullword boundary. It is 
+actually shifted 3 bytes in order to satisfy the internal alignment requirements:
+
+{{{
+dcl 1 A,                        
+    3 B char(1),          /* starts on byte=0 */                 
+    3 C fixed bin(15),    /* starts on byte=1 */       
+    3 D,                  /* starts on byte=4, 1 padding char */                       
+       4 E char(1),       /* starts on byte=4 */            
+       4 F fixed bin(31); /* starts on byte=5 */     
+}}}
+
+
+
