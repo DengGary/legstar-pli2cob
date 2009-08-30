@@ -39,9 +39,19 @@ public class ASTToCobol {
     /** Detects repetition factors in PLI picture.*/
     private static final Pattern REPETITION_FACTOR_PATTERN =
         Pattern.compile("\\(\\d+\\)");
+    
+    /** Execution parameters for the PLI to COBOL utility. */
+    private Pli2CobContext _context;
 
     /** Logger. */
     private final Log _log = LogFactory.getLog(getClass());
+    
+    /**
+     * @param context execution parameters for the PLI to COBOL utility
+     */
+    public ASTToCobol(final Pli2CobContext context) {
+        _context = context;
+    }
 
     /**
      * Converts one or multiple PLI declare statements to COBOL data description clauses.
@@ -134,8 +144,10 @@ public class ASTToCobol {
                                 + dataItem);
                         return true;
                     } else {
-                        throw new CobolFormatException("Bit string with non 8 multiple length not supported.  Item="
-                                + dataItem);
+                        getContext().processError(
+                                "Bit string with non 8 multiple length not supported.  Item="
+                                + dataItem, _log);
+                        return false;
                     }
                 }
             }
@@ -486,6 +498,13 @@ public class ASTToCobol {
         nodeST = _stgGroup.getInstanceOf("value");
         nodeST.setAttribute("_value", dataItem.getValue());
         return nodeST;
+    }
+
+    /**
+     * @return the execution parameters for the PLI to COBOL utility
+     */
+    public Pli2CobContext getContext() {
+        return _context;
     }
 
 }
