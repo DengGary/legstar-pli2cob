@@ -28,8 +28,25 @@ import com.legstar.pli2cob.PLIStructureParser.script_return;
  */
 public class PLIStructureToCobol {
 
+    /** Execution parameters for the PLI to COBOL utility. */
+    private Pli2CobContext _context;
+
     /** Logger. */
     private final Log _log = LogFactory.getLog(getClass());
+
+    /**
+     * Default constructor.
+     */
+    public PLIStructureToCobol() {
+        this(new Pli2CobContext());
+    }
+
+    /**
+     * @param context execution parameters for the PLI to COBOL utility
+     */
+    public PLIStructureToCobol(final Pli2CobContext context) {
+        _context = context;
+    }
 
     /**
      * Execute the transformation from PLI to COBOL.
@@ -135,7 +152,7 @@ public class PLIStructureToCobol {
         }
         String errorMessage = "Converting abstract syntax tree: " + ast + " failed.";
         try {
-            ASTToCobol converter = new ASTToCobol();
+            ASTToCobol converter = new ASTToCobol(getContext());
             String cobolSource = converter.convert(ast);
             if (_log.isDebugEnabled()) {
                 debug("COBOL structure produced:", cobolSource);
@@ -169,6 +186,13 @@ public class PLIStructureToCobol {
         _log.debug(title);
         _log.debug(st.toString());
         _log.debug("----------------------------------------------------------------");
+    }
+
+    /**
+     * @return the execution parameters for the PLI to COBOL utility
+     */
+    public Pli2CobContext getContext() {
+        return _context;
     }
 
 }

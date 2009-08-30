@@ -23,6 +23,7 @@ import com.legstar.pli2cob.PLIStructureLexingException;
 import com.legstar.pli2cob.PLIStructureParsingException;
 import com.legstar.pli2cob.PLIStructureReadingException;
 import com.legstar.pli2cob.PLIStructureToCobol;
+import com.legstar.pli2cob.Pli2CobContext;
 
 /**
  * PLI to COBOL structure ANT Task.
@@ -55,6 +56,9 @@ public class PLIStructureToCobolTask extends Task {
     /** The target directory where cobol files will be created. */
     private File _targetDir;
 
+    /** Indicates whether parsing errors will fail the execution; defaults to true.*/
+    private boolean _failonerror = true;
+
     /**
      *  The ant execution method.
      *  Check parameters and produce COBOL fragment.
@@ -65,7 +69,7 @@ public class PLIStructureToCobolTask extends Task {
         checkParameters();
 
         try {
-            PLIStructureToCobol pli2cob = new PLIStructureToCobol();
+            PLIStructureToCobol pli2cob = new PLIStructureToCobol(createContext());
             Iterator < FileSet > itor = _fileSets.iterator();
             while (itor.hasNext()) {
                 FileSet fileset = itor.next();
@@ -123,6 +127,16 @@ public class PLIStructureToCobolTask extends Task {
             _log.debug("Antlr loader chain");
             debugLoaderChain(antlr.CharScanner.class.getClassLoader());
         }
+    }
+    
+    /**
+     * Gather all parameters into a context object.
+     * @return a parameter context to be used throughout all code
+     */
+    private Pli2CobContext createContext() {
+        Pli2CobContext context = new Pli2CobContext();
+        context.setFailonerror(isFailonerror());
+        return context;
     }
 
     /**
@@ -209,6 +223,20 @@ public class PLIStructureToCobolTask extends Task {
      */
     public void setTargetDir(final File targetDir) {
         _targetDir = targetDir;
+    }
+
+    /**
+     * @return whether parsing errors will fail the execution or generate warnings
+     */
+    public boolean isFailonerror() {
+        return _failonerror;
+    }
+
+    /**
+     * @param failonerror whether parsing errors will fail the execution or generate warnings
+     */
+    public void setFailonerror(final boolean failonerror) {
+        _failonerror = failonerror;
     }
 
     /**
