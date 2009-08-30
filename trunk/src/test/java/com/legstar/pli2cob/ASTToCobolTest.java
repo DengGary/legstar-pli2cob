@@ -99,12 +99,9 @@ public class ASTToCobolTest extends AbstractTester {
                     + "" + '\n');
             fail();
         } catch (CobolFormatException e) {
-            assertEquals("Bit string with non 8 multiple length not supported.  Item="
-                    + "[level : 1,"
-                    + " name : Last,"
-                    + " type : BIT,"
-                    + " length : 20,"
-                    + " varying : NONVARYING]", e.getMessage());
+            assertEquals("Unsupported bit length: 20."
+                    + " Item=[level : 1, name : Last, type : BIT, length : 20, varying : NONVARYING]",
+                    e.getMessage());
         }
     }
 
@@ -238,8 +235,8 @@ public class ASTToCobolTest extends AbstractTester {
                     + "" + '\n');
             fail();
         } catch (CobolFormatException e) {
-            assertEquals("Unsupported precision: "
-                    + "[level : 1,"
+            assertEquals("Unsupported precision: 20."
+                    + " Item=[level : 1,"
                     + " name : A,"
                     + " scale : FLOAT,"
                     + " base : DECIMAL,"
@@ -475,15 +472,12 @@ public class ASTToCobolTest extends AbstractTester {
                     + "" + '\n');
             fail();
         } catch (CobolFormatException e) {
-            assertEquals("Unsupported variable lower bound: "
-                    + "[level : 1,"
+            assertEquals("Unsupported variable lower bound: [bound : 4, refer : X]."
+                    + " Item=[level : 1,"
                     + " name : List_A,"
                     + " dimensions :"
-                    + " [lbound :"
-                    + " [bound : 4,"
-                    + " refer : X],"
-                    + " hbound :"
-                    + " [bound : 11]]]", e.getMessage());
+                    + " [lbound : [bound : 4, refer : X],"
+                    + " hbound : [bound : 11]]]", e.getMessage());
         }
     }
 
@@ -655,10 +649,10 @@ public class ASTToCobolTest extends AbstractTester {
                 + "       01 Initial PIC X(1)." + '\n'
                 + "" + '\n');
     }
-    
+
     /**
-     * See if failonerror parameter is treated properly
-     * @throws CobolFormatException
+     * See if failonerror parameter is treated properly.
+     * @throws CobolFormatException if conversion fails
      */
     public void testFailonerror() throws CobolFormatException {
         Pli2CobContext context = new Pli2CobContext();

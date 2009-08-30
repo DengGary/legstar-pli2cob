@@ -17,7 +17,6 @@ import com.legstar.pli2cob.model.PLIDataDimension;
 import com.legstar.pli2cob.model.PLIDataItem;
 import com.legstar.pli2cob.model.PLIDataItem.Base;
 import com.legstar.pli2cob.model.PLIDataItem.Scale;
-import com.legstar.pli2cob.model.PLIDataItem.StringType;
 
 /**
  * Produce COBOL fragments from PLI structures after they are parsed as
@@ -108,51 +107,17 @@ public class ASTToCobol {
     protected StringTemplate getDataDescriptionST(
             final TreeAdaptor adaptor, final Object astItem) throws CobolFormatException {
         PLIDataItem dataItem = new PLIDataItem(adaptor, astItem);
-        if (!checkAcceptance(dataItem)) {
+        StringTemplate nodeST;
+        try {
+            nodeST = _stgGroup.getInstanceOf("dataDescription");
+            nodeST.setAttribute("level", formatLevel(dataItem.getLevel()));
+            nodeST.setAttribute("name", formatName(dataItem.getName()));
+            nodeST.setAttribute("attributes", getAttributesST(adaptor, dataItem));
+        } catch (CobolFormatException e) {
+            getContext().processError(e, dataItem, _log);
             return null;
         }
-        StringTemplate nodeST = _stgGroup.getInstanceOf("dataDescription");
-        nodeST.setAttribute("level", formatLevel(dataItem.getLevel()));
-        nodeST.setAttribute("name", formatName(dataItem.getName()));
-        nodeST.setAttribute("attributes", getAttributesST(adaptor, dataItem));
         return nodeST;
-    }
-
-    /**
-     * Check if the PLI construct is supported (i.e. can be safely converted to COBOL).
-     * <p/>
-     * Items rejected:
-     * <ul>
-     * <li>Elementary string item with size zero</li>
-     * <li>Elementary bit items with length%8 != 0</li>
-     * </ul>
-     * @param dataItem the PLI data item
-     * @return true if the data item can be safely converted
-     * @throws CobolFormatException if errors cannot be recovered from
-     */
-    protected boolean checkAcceptance(final PLIDataItem dataItem) throws CobolFormatException {
-        if (!dataItem.isGroup()) {
-            if (dataItem.isString()) {
-                if (dataItem.getLength() == 0) {
-                    _log.warn("Zero length string items are not supported. "
-                            + dataItem + " will be ignored.");
-                    return false;
-                }
-                if (dataItem.getStringType() == StringType.BIT) {
-                    if (dataItem.getLength() % 8 == 0) {
-                        _log.info("Bit string will be converted to PIC X. Item="
-                                + dataItem);
-                        return true;
-                    } else {
-                        getContext().processError(
-                                "Bit string with non 8 multiple length not supported.  Item="
-                                + dataItem, _log);
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
     }
 
     /**
@@ -209,14 +174,14 @@ public class ASTToCobol {
         }
         String candidate = name.replace('_', '-');
         if (candidate.charAt(0) == '-') {
-            throw new CobolFormatException("Name " + name + " cannot be used for COBOL");
+            throw new CobolFormatException("Name " + name + " invalid for COBOL");
         }
         if (candidate.length() > 30) {
             candidate = candidate.substring(0, 30);
         }
         Matcher matcher = INVALID_COBOL_NAME_PATTERN.matcher(candidate);
         if (matcher.find()) {
-            throw new CobolFormatException("Name " + name + " cannot be used for COBOL");
+            throw new CobolFormatException("Name " + name + " invalid for COBOL");
         }
         return candidate;
     }
@@ -254,7 +219,7 @@ public class ASTToCobol {
                 maxOccurs += 1 - dimension.getLbound().getBound();
                 if (dimension.getLbound().getRefer() != null) {
                     throw new CobolFormatException(
-                            "Unsupported variable lower bound: " + dataItem.toString());
+                            "Unsupported variable lower bound: " + dimension.getLbound());
                 }
             }
             nodeST = _stgGroup.getInstanceOf("occurs");
@@ -263,7 +228,7 @@ public class ASTToCobol {
                 /* Make sure there is no lower bound */
                 if (dimension.getLbound() != null &&  dimension.getLbound().getBound() > 1) {
                     throw new CobolFormatException(
-                            "Unsupported variable upper bound: " + dataItem.toString());
+                            "Unsupported variable upper bound: " + dimension.getHbound().getRefer());
                 }
                 StringTemplate dependingOnST = _stgGroup.getInstanceOf("dependingOn");
                 dependingOnST.setAttribute("dependingOn", dimension.getHbound().getRefer());
@@ -277,11 +242,13 @@ public class ASTToCobol {
             for (PLIDataDimension dimension : dataItem.getDimensions()) {
                 if (dimension.getLbound() != null &&  dimension.getLbound().getBound() > 1) {
                     throw new CobolFormatException(
-                            "Unsupported lower bound for multi-dimension array: " + dataItem.toString());
+                            "Unsupported lower bound for multi-dimension array: "
+                            + dimension.getLbound());
                 }
                 if (dimension.getHbound().getRefer() != null) {
                     throw new CobolFormatException(
-                            "Unsupported variable higher bound for multi-dimension array: " + dataItem.toString());
+                            "Unsupported variable higher bound for multi-dimension array: "
+                            + dimension.getHbound().getRefer());
                 }
                 maxOccurs *= dimension.getHbound().getBound();
             }
@@ -299,11 +266,15 @@ public class ASTToCobol {
     protected StringTemplate formatPictureAndUsage(
             final PLIDataItem dataItem) throws CobolFormatException {
         if (dataItem.isString()) {
+            if (dataItem.getLength() <= 0) {
+                throw new CobolFormatException(
+                        "Unsupported string length: " + dataItem.getLength());
+            }
             StringTemplate nodeST = null;
             switch (dataItem.getVaryingType()) {
             case VARYINGZ:
                 throw new CobolFormatException(
-                        "Unsupported varying type: " + dataItem.toString());
+                        "Unsupported varying type: " + dataItem.getVaryingType());
             case VARYING:
                 switch(dataItem.getStringType()) {
                 case CHARACTER:
@@ -313,7 +284,7 @@ public class ASTToCobol {
                     break;
                 default:
                     throw new CobolFormatException(
-                            "Unsupported varying type: " + dataItem.toString());
+                            "Unsupported varying type: " + dataItem.getStringType());
                 }
                 break;
             default:
@@ -327,6 +298,10 @@ public class ASTToCobol {
                     nodeST.setAttribute("_length", dataItem.getLength());
                     break;
                 case BIT:
+                    if (dataItem.getLength() % 8 != 0) {
+                        throw new CobolFormatException(
+                                "Unsupported bit length: " + dataItem.getLength());
+                    }
                     nodeST = _stgGroup.getInstanceOf("characterPictureValue");
                     nodeST.setAttribute("_length", dataItem.getLength() / 8);
                     break;
@@ -354,7 +329,7 @@ public class ASTToCobol {
                         return nodeST;
                     } else {
                         throw new CobolFormatException(
-                                "Unsupported precision: " + dataItem.toString());
+                                "Unsupported precision: " + dataItem.getPrecision());
                     }
                 } else {
                     if (dataItem.getPrecision() <= 21) {
@@ -365,7 +340,7 @@ public class ASTToCobol {
                         return nodeST;
                     } else {
                         throw new CobolFormatException(
-                                "Unsupported precision: " + dataItem.toString());
+                                "Unsupported precision: " + dataItem.getPrecision());
                     }
                 }
             } else {

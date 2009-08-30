@@ -24,4 +24,12 @@ public class CobolFormatException extends Exception {
     public CobolFormatException(final Throwable e) {
         super(e);
     }
+
+    /**
+     * @param msg the exception message
+     * @param e the exception
+     */
+    public CobolFormatException(final String msg, final Throwable e) {
+        super(msg, e);
+    }
 }
