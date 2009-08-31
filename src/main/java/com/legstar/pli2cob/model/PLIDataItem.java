@@ -59,6 +59,12 @@ public class PLIDataItem extends AbstractPLIData {
     
     /** The initial clause content.*/
     private String _value;
+    
+    /** Item should be aligned on its required boundary.*/
+    private boolean _isAligned = true;
+    
+    /** Alignment requirement.*/
+    private AlignmentRequirement _alignmentRequirement;
 
     /** Dimensions list. */
     private List < PLIDataDimension > _dimensions = new ArrayList < PLIDataDimension >();
@@ -92,6 +98,8 @@ public class PLIDataItem extends AbstractPLIData {
         setStringAttributes(adaptor, astItem);
         setPictureAttributes(adaptor, astItem);
         setValue(adaptor, astItem);
+        setAligned(adaptor, astItem);
+        setAlignmentRequirement(adaptor, astItem);
     }
 
     /**
@@ -200,6 +208,20 @@ public class PLIDataItem extends AbstractPLIData {
     }
 
     /**
+     * @return true for aligned data items
+     */
+    public boolean isAligned() {
+        return _isAligned;
+    }
+    
+    /**
+     * @return the type of boundary this data item should be aligned to
+     */
+    public AlignmentRequirement getAlignmentRequirement() {
+        return _alignmentRequirement;
+    }
+
+    /**
      * Initial setting for level number for a given data item.
      * <p/>
      * For the root node, if it is not a data item, return an artificial level of 0 which will
@@ -284,7 +306,7 @@ public class PLIDataItem extends AbstractPLIData {
         if (picture != null && picture.length() > 0) {
             _picture = picture.replace("\"", "").replace("'", "");
             _isString = true;
-            _length = calcLength(_picture);
+            _length = calcPictureLength(_picture);
             _stringType = StringType.CHARACTER;
             _varyingType = VaryingType.NONVARYING;
         }
@@ -296,7 +318,7 @@ public class PLIDataItem extends AbstractPLIData {
      * @return the string length
      * TODO scaling factors are missed for repetition factors
      */
-    private int calcLength(final String picture) {
+    private int calcPictureLength(final String picture) {
         int length = 0;
         int current = 0;
         Matcher matcher = REPETITION_FACTOR_PATTERN.matcher(picture);
@@ -370,7 +392,64 @@ public class PLIDataItem extends AbstractPLIData {
                 _scalingFactor = (scalingFactor == null) ? 0 : Integer.parseInt(scalingFactor);
             }
             _isSigned = (signed == null) ? true : (signed.equals("SIGNED"));
+            _length = calcNumericLength();
         }
+    }
+    
+    /**
+     * @return the length (in bytes) of an elementary numeric item.
+     */
+    private int calcNumericLength() {
+        int length = 0;
+        if (_scale == Scale.FIXED) {
+            if (_base == Base.BINARY) {
+                if (_isSigned) {
+                    if (_precision <= 7) {
+                        length = 1;
+                    } else if (_precision <= 15) {
+                        length = 2;
+                    } else if (_precision <= 31) {
+                        length = 4;
+                    } else if (_precision <= 63) {
+                        length = 8;
+                    }
+                } else {
+                    if (_precision <= 8) {
+                        length = 1;
+                    } else if (_precision <= 16) {
+                        length = 2;
+                    } else if (_precision <= 32) {
+                        length = 4;
+                    } else if (_precision <= 64) {
+                        length = 8;
+                    }
+                }
+            } else {
+                length = (int) Math.ceil(((double) _precision + 1) / 2);
+            }
+            
+        } else {
+            if (_base == Base.BINARY) {
+                if (_precision <= 21) {
+                    length = 4;
+                } else if (_precision <= 53) {
+                    length = 8;
+                } else {
+                    length = 16;
+                }
+            } else {
+                /* TODO support IEEE decimal floating point (DFP)*/
+                if (_precision <= 6) {
+                    length = 4;
+                } else if (_precision <= 16) {
+                    length = 8;
+                } else {
+                    length = 16;
+                }
+            }
+            
+        }
+        return length;
     }
 
     /**
@@ -388,6 +467,97 @@ public class PLIDataItem extends AbstractPLIData {
                 adaptor, astItem, PLIStructureParser.VALUE, null);
     }
 
+    /**
+     * Set aligned depending on ALIGNED/UNALIGNED and defaults depending
+     * of data type.
+     * @param adaptor the tree navigator
+     * @param astItem the data item abstract syntax subtree
+     */
+    private void setAligned(final TreeAdaptor adaptor, final Object astItem) {
+        String alignment = (String) getAttributeValue(
+                adaptor, astItem, PLIStructureParser.ALIGNMENT, null);
+        /* Item explicitly declared*/
+        if (alignment != null) {
+            if (alignment.equals("ALIGNED")) {
+                _isAligned = true;
+            } else {
+                _isAligned = false;
+            }
+            return;
+        }
+        /* Defaults should apply.*/
+        if (isString()) {
+            _isAligned = false;
+        }
+    }
+    
+    /**
+     * Evaluates the alignment requirement for this data item.
+     * <p/>
+     * Unaligned data is aligned on byte boundary unless it is a bit string.
+     * @param adaptor the tree navigator
+     * @param astItem the data item abstract syntax subtree
+     */
+    private void setAlignmentRequirement(final TreeAdaptor adaptor, final Object astItem) {
+        _alignmentRequirement = AlignmentRequirement.BYTE;
+        if (!_isAligned) {
+            if (_isString && _stringType == StringType.BIT) {
+                _alignmentRequirement = AlignmentRequirement.BIT;
+            }
+            return;
+        }
+        
+        if (_isNumeric) {
+            if (_scale == Scale.FIXED) {
+                if (_base == Base.BINARY) {
+                    if (_isSigned) {
+                        if (_precision <= 7) {
+                            _alignmentRequirement = AlignmentRequirement.BYTE;
+                        } else if (_precision <= 15) {
+                            _alignmentRequirement = AlignmentRequirement.HALFWORD;
+                        } else if (_precision <= 31) {
+                            _alignmentRequirement = AlignmentRequirement.FULLWORD;
+                        } else if (_precision <= 63) {
+                            _alignmentRequirement = AlignmentRequirement.DOUBLEWORD;
+                        }
+                    } else {
+                        if (_precision <= 8) {
+                            _alignmentRequirement = AlignmentRequirement.BYTE;
+                        } else if (_precision <= 16) {
+                            _alignmentRequirement = AlignmentRequirement.HALFWORD;
+                        } else if (_precision <= 32) {
+                            _alignmentRequirement = AlignmentRequirement.FULLWORD;
+                        } else if (_precision <= 64) {
+                            _alignmentRequirement = AlignmentRequirement.DOUBLEWORD;
+                        }
+                    }
+                } else {
+                    _alignmentRequirement = AlignmentRequirement.BYTE;
+                }
+                
+            } else {
+                if (_base == Base.BINARY) {
+                    if (_precision <= 21) {
+                        _alignmentRequirement = AlignmentRequirement.FULLWORD;
+                    } else if (_precision <= 53) {
+                        _alignmentRequirement = AlignmentRequirement.DOUBLEWORD;
+                    } else {
+                        _alignmentRequirement = AlignmentRequirement.DOUBLEWORD;
+                    }
+                } else {
+                    /* TODO support IEEE decimal floating point (DFP)*/
+                    if (_precision <= 6) {
+                        _alignmentRequirement = AlignmentRequirement.FULLWORD;
+                    } else if (_precision <= 16) {
+                        _alignmentRequirement = AlignmentRequirement.DOUBLEWORD;
+                    } else {
+                        _alignmentRequirement = AlignmentRequirement.DOUBLEWORD;
+                    }
+                }
+            }
+        }
+    }
+
     /** Floating point or fixed numerics. */
     public enum Scale { FLOAT, FIXED };
 
@@ -399,6 +569,9 @@ public class PLIDataItem extends AbstractPLIData {
 
     /** String varying types. */
     public enum VaryingType { NONVARYING, VARYING, VARYINGZ };
+
+    /** Possible alignment requirements in PLI from lower to higher. */
+    public enum AlignmentRequirement { BIT, BYTE, HALFWORD, FULLWORD, DOUBLEWORD };
 
     /**
      * Pretty print.
@@ -420,7 +593,7 @@ public class PLIDataItem extends AbstractPLIData {
         }
         if (isString()) {
             sb.append(", ");
-            sb.append("type : " + getStringType());
+            sb.append("stringType : " + getStringType());
             sb.append(", ");
             sb.append("length : " + getLength());
             sb.append(", ");
@@ -437,6 +610,8 @@ public class PLIDataItem extends AbstractPLIData {
             sb.append("precision : " + getPrecision());
             sb.append(", ");
             sb.append("scaling factor : " + getScalingFactor());
+            sb.append(", ");
+            sb.append("length : " + getLength());
         }
         if (getPicture() != null) {
             sb.append(", ");
@@ -446,6 +621,8 @@ public class PLIDataItem extends AbstractPLIData {
             sb.append(", ");
             sb.append("value : " + getValue());
         }
+        sb.append(", ");
+        sb.append("aligned : " + isAligned());
         sb.append("]");
         return sb.toString();
     }

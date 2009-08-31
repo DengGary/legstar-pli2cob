@@ -302,6 +302,7 @@ public class ASTToCobol {
                         throw new CobolFormatException(
                                 "Unsupported bit length: " + dataItem.getLength());
                     }
+                    _log.warn("Bit item converted to PIC X(" + dataItem.getLength() / 8 + "). Item=" + dataItem);
                     nodeST = _stgGroup.getInstanceOf("characterPictureValue");
                     nodeST.setAttribute("_length", dataItem.getLength() / 8);
                     break;
@@ -357,6 +358,7 @@ public class ASTToCobol {
                 } else {
                     if (dataItem.isSigned()) {
                         if (dataItem.getPrecision() <= 7) {
+                            _log.warn("One byte integer converted to PIC X(1). Item=" + dataItem);
                             StringTemplate nodeST = _stgGroup.getInstanceOf("characterPictureValue");
                             nodeST.setAttribute("_length", 1);
                             return nodeST;

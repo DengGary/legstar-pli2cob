@@ -44,9 +44,10 @@ public class PLIStructureToCobolTaskTest extends TestCase {
                     + " Unsupported string length: 0."
                     + " Item=[level : 2,"
                     + " name : SAMP_COMMAREA__FINAL,"
-                    + " type : CHARACTER,"
+                    + " stringType : CHARACTER,"
                     + " length : 0,"
-                    + " varying : NONVARYING]", e.getMessage());
+                    + " varying : NONVARYING,"
+                    + " aligned : false]", e.getMessage());
         }
         task.setFailonerror(false);
         try {

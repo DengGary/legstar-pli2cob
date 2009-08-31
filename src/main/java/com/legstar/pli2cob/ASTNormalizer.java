@@ -17,6 +17,9 @@ import org.antlr.runtime.tree.TreeAdaptor;
  * <p/>
  * Parent/child relationship is determined by their level numbers. A child must have a
  * higher level than its parent.
+ * <p/>
+ * Normalizing also involves completing evaluation for certain attributes which are
+ * inherited from the hierarchy. ALIGNED/UNALIGNED are such attributes.
  *
  */
 public final class ASTNormalizer {
