@@ -81,6 +81,20 @@ public abstract class AbstractTester extends TestCase {
     }
 
     /**
+     * A generic test helper that takes a source fragment and checks the result.
+     * @param source the source fragment
+     * @param expected the expected sub graph
+     * @throws CobolFormatException if conversion fails
+     */
+    public void convertCheck(
+            final String source,
+            final String expected) throws CobolFormatException {
+        ASTToCobol converter = new ASTToCobol(new Pli2CobContext());
+        String cobol = converter.convert(parseAndNormalize(source));
+        assertEquals(expected, cobol);
+    }
+
+    /**
      * Produce a graphviz source for an abstract syntax tree.
      * @param ast the abstract syntax tree
      * @return a graphviz source

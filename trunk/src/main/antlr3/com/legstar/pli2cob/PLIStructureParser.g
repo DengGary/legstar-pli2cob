@@ -59,6 +59,9 @@ tokens {
   STATIC;
   BASED;
   CONTROLLED;
+  ALIGNMENT;
+  ALIGNED;
+  UNALIGNED;
 }
 
 /*------------------------------------------------------------------
@@ -238,8 +241,8 @@ single_bound_expression:
  * -- Alignment attribute
 *------------------------------------------------------------------*/
 alignment_attribute:
-    ALIGNED_KEYWORD -> ^(VARYING NONVARYING)
-    | UNALIGNED_KEYWORD -> ^(VARYING NONVARYING)
+    ALIGNED_KEYWORD -> ^(ALIGNMENT ALIGNED)
+    | UNALIGNED_KEYWORD -> ^(ALIGNMENT UNALIGNED)
     ;
 
 /*------------------------------------------------------------------
