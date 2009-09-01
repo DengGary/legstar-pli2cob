@@ -7,6 +7,8 @@ While it is relatively straightforward to map elementary data items from PLI to 
 
 One major issue is that PLI and COBOL compilers do not handle data alignment for structures in the same way.
 
+A PLI and a COBOL structure are memory-compatible when data created using one structure can be consumed by the other. In other words, each data item in memory must match a compatible PLI or COBOL item description.
+
 = PLI and COBOL handling of in memory alignement=
 
 In both COBOL and PLI data items have alignment requirements which vary depending on data type and alignment attributes (ALIGNED/UNALIGNED for PLI, SYNCHRONIZED for COBOL).
@@ -46,7 +48,6 @@ The following table shows that for data types supported by COBOL, the alignment 
 
 Although elementary data items might have the same alignment requirements, alignment strategies applied by the PLI and COBOL compilers for structures differ. data laid out by one compiler might not be enterpreted correctly by the other (see http://publibz.boulder.ibm.com/epubs/pdf/ceea4160.pdf).
 
-
 == Default alignment attribute values ==
 
 For PLI, UNALIGNED is the default for bit data, character data, graphic data, widechar data and numeric character data. ALIGNED is the default for all other types of data. This is important because it means some widely used data types, such as FIXED BINARY, are ALIGNED by default.
@@ -55,7 +56,7 @@ For COBOL, all data types are not SYNCHRONIZED by default.
 
 == Alignment attribute value inheritance ==
 
-In PLI, ALIGNED/UNALIGNED attributes are inherited from a parent in a structure. Childs can override the parent aligment by explicitly setting the attribute. Example:
+In PLI, ALIGNED/UNALIGNED attributes are inherited from a parent in a structure. Childs can override the parent aligment by explicitly setting the attribute.
 
 In COBOL, SYNCHRONIZED can be inherited from a parent but only at the 01 level. Child items have no way to override the SYNCHRONIZED attribute.
 
@@ -63,7 +64,7 @@ In COBOL, SYNCHRONIZED can be inherited from a parent but only at the 01 level. 
 
 This is probably where the most differences exist between PLI and COBOL alignment handling.
 
-== COBOL structure mapping strategy ==
+=== COBOL structure mapping strategy ===
 
 COBOL does not attempt to optimize the padding needed to satisfy the alignment requirements.
 
@@ -87,7 +88,7 @@ Applying this strategy to structure:
 
 The result is 12 bytes of storage used with 4 padding bytes and 8 useful bytes.
 
-== PLI structure mapping strategy ==
+=== PLI structure mapping strategy ===
 
 PLI has a sophisticated strategy for structures mapping. The objective is to minimize the number of padding characters.
 
@@ -105,5 +106,52 @@ dcl 1 A,
        4 F fixed bin(31); /* starts on byte=5 */     
 }}}
 
+=== From PLI to COBOL ===
 
+Starting from the previous PLI structure, what would be the memory-compatible COBOL structure?
 
+First it is important to understand that problems stem from the default ALIGNED attributes in PLI. To illustrate this, if the PLI structure was:
+
+dcl 1 A UNALIGNED,                        
+    3 B char(1),                
+    3 C fixed bin(15)       
+    3 D,                      
+       4 E char(1),           
+       4 F fixed bin(31);     
+}}}
+
+That would force all data items to be UNALIGNED and therefore, this is a memory-compatible COBOL structure:
+
+{{{
+        01 A.                        
+            03 B PIC X(1).                
+            03 C PIC S9(4) COMP.          
+            03 D.                         
+               04 E PIC X(1).             
+               04 F PIC S9(9) COMP-5.     
+}}}
+
+But here we assume that we are bound to an existing PLI structure and have no way to modify it.
+
+Knowing that alignment requirements are the same between the 2 languages at the elementary data item level, the first (naive) approach is simply to translate the default ALIGNED attribute into COBOL SYNCHRONIZED. This would yield this COBOL structure:
+ 
+{{{
+        01 A.                        
+            03 B PIC X(1).                
+            03 C PIC S9(4) COMP SYNC.          
+            03 D.                         
+               04 E PIC X(1).             
+               04 F PIC S9(9) COMP-5 SYNC.     
+}}}
+
+Unfortunately, this is not memory-compatible because COBOL will make no attempt at reducing the padding bytes while PLI will. Given the PLI structure mapping algorithm, the memory-compatible COBOL structure is:
+ 
+{{{
+        01 A.                        
+            03 B PIC X(1).                
+            03 C PIC S9(4) COMP SYNC.
+            03 FILLER PIC X(1).         
+            03 D.                         
+               04 E PIC X(1).             
+               04 F PIC S9(9) COMP-5 SYNC.     
+}}}
