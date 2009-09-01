@@ -13,9 +13,10 @@ public class ASTNormalizerTest extends AbstractTester {
      * Check what happens if nothing passed.
      */
     public void testInstantiation() {
-        Tree ast = ASTNormalizer.normalize(null);
+        ASTNormalizer normalizer = new ASTNormalizer();
+        Tree ast = normalizer.normalize(null);
         assertTrue(ast == null);
-        ast = ASTNormalizer.normalize(parse(""));
+        ast = normalizer.normalize(parse(""));
         assertTrue(ast == null);
     }
 
@@ -205,6 +206,93 @@ public class ASTNormalizerTest extends AbstractTester {
                 + "  n20 -> n21 // \"STRING\" -> \"CHARACTER\""
                 + "  n15 -> n22 // \"DATA_ITEM\" -> \"LENGTH\""
                 + "  n22 -> n23 // \"LENGTH\" -> \"20\""
+        );
+    }
+
+    /**
+     * Alignment attribute inheritance.
+     */
+    public void testAlignmentInheritance() {
+        normalizeCheck(
+                "Declare 1 S,"
+                + " 2 X bit(2),        /* Unaligned by default */"
+                + " 2 A aligned,       /* Aligned explicitly   */"
+                + "   3 B,             /* Aligned from A       */"
+                + "   3 C unaligned,   /* Unaligned explicitly */"
+                + "     4 D,           /* Unaligned from C     */"
+                + "     4 E aligned,   /* Aligned explicitly   */"
+                + "     4 F,           /* Unaligned from C     */"
+                + "   3 G,             /* Aligned from A       */"
+                + " 2 H;               /* Aligned by default   */",
+
+                "  n0 -> n1 // \"\" -> \"DATA_ITEM\""
+                + "  n1 -> n2 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n2 -> n3 // \"LEVEL\" -> \"1\""
+                + "  n1 -> n4 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n4 -> n5 // \"NAME\" -> \"S\""
+                + "  n1 -> n6 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n6 -> n7 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n7 -> n8 // \"LEVEL\" -> \"2\""
+                + "  n6 -> n9 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n9 -> n10 // \"NAME\" -> \"X\""
+                + "  n6 -> n11 // \"DATA_ITEM\" -> \"STRING\""
+                + "  n11 -> n12 // \"STRING\" -> \"BIT\""
+                + "  n6 -> n13 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n13 -> n14 // \"LENGTH\" -> \"2\""
+                + "  n1 -> n15 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n15 -> n16 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n16 -> n17 // \"LEVEL\" -> \"2\""
+                + "  n15 -> n18 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n18 -> n19 // \"NAME\" -> \"A\""
+                + "  n15 -> n20 // \"DATA_ITEM\" -> \"ALIGNMENT\""
+                + "  n20 -> n21 // \"ALIGNMENT\" -> \"ALIGNED\""
+                + "  n15 -> n22 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n22 -> n23 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n23 -> n24 // \"LEVEL\" -> \"3\""
+                + "  n22 -> n25 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n25 -> n26 // \"NAME\" -> \"B\""
+                + "  n22 -> n27 // \"DATA_ITEM\" -> \"ALIGNMENT\""
+                + "  n27 -> n28 // \"ALIGNMENT\" -> \"ALIGNED\""
+                + "  n15 -> n29 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n29 -> n30 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n30 -> n31 // \"LEVEL\" -> \"3\""
+                + "  n29 -> n32 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n32 -> n33 // \"NAME\" -> \"C\""
+                + "  n29 -> n34 // \"DATA_ITEM\" -> \"ALIGNMENT\""
+                + "  n34 -> n35 // \"ALIGNMENT\" -> \"UNALIGNED\""
+                + "  n29 -> n36 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n36 -> n37 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n37 -> n38 // \"LEVEL\" -> \"4\""
+                + "  n36 -> n39 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n39 -> n40 // \"NAME\" -> \"D\""
+                + "  n36 -> n41 // \"DATA_ITEM\" -> \"ALIGNMENT\""
+                + "  n41 -> n42 // \"ALIGNMENT\" -> \"UNALIGNED\""
+                + "  n29 -> n43 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n43 -> n44 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n44 -> n45 // \"LEVEL\" -> \"4\""
+                + "  n43 -> n46 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n46 -> n47 // \"NAME\" -> \"E\""
+                + "  n43 -> n48 // \"DATA_ITEM\" -> \"ALIGNMENT\""
+                + "  n48 -> n49 // \"ALIGNMENT\" -> \"ALIGNED\""
+                + "  n29 -> n50 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n50 -> n51 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n51 -> n52 // \"LEVEL\" -> \"4\""
+                + "  n50 -> n53 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n53 -> n54 // \"NAME\" -> \"F\""
+                + "  n50 -> n55 // \"DATA_ITEM\" -> \"ALIGNMENT\""
+                + "  n55 -> n56 // \"ALIGNMENT\" -> \"UNALIGNED\""
+                + "  n15 -> n57 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n57 -> n58 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n58 -> n59 // \"LEVEL\" -> \"3\""
+                + "  n57 -> n60 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n60 -> n61 // \"NAME\" -> \"G\""
+                + "  n57 -> n62 // \"DATA_ITEM\" -> \"ALIGNMENT\""
+                + "  n62 -> n63 // \"ALIGNMENT\" -> \"ALIGNED\""
+                + "  n1 -> n64 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n64 -> n65 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n65 -> n66 // \"LEVEL\" -> \"2\""
+                + "  n64 -> n67 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n67 -> n68 // \"NAME\" -> \"H\""
         );
     }
 

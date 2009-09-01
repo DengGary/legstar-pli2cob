@@ -4,12 +4,13 @@ import org.antlr.runtime.tree.CommonTreeAdaptor;
 import org.antlr.runtime.tree.TreeAdaptor;
 
 import com.legstar.pli2cob.PLIStructureParser;
+import com.legstar.pli2cob.util.ASTUtils;
 
 /**
  * Describes a PLI bound for an array dimension.
  *
  */
-public class PLIDataBound extends AbstractPLIData {
+public class PLIDataBound {
 
     /** The bound maximum value. */
     private int _bound;
@@ -65,7 +66,7 @@ public class PLIDataBound extends AbstractPLIData {
      * @param astItem an abstract syntax tree node
      */
     private void setRefer(final TreeAdaptor adaptor, final Object astItem) {
-        String refer = (String) getAttributeValue(
+        String refer = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.REFER, null);
         _refer = refer;
     }

@@ -9,6 +9,7 @@ import org.antlr.runtime.tree.CommonTreeAdaptor;
 import org.antlr.runtime.tree.TreeAdaptor;
 
 import com.legstar.pli2cob.PLIStructureParser;
+import com.legstar.pli2cob.util.ASTUtils;
 
 /**
  * A Data Item model that can be built from an abstract syntax tree node.
@@ -16,7 +17,7 @@ import com.legstar.pli2cob.PLIStructureParser;
  * This is an immutable class.
  *
  */
-public class PLIDataItem extends AbstractPLIData {
+public class PLIDataItem {
 
     /** Level. */
     private int _level;
@@ -232,7 +233,7 @@ public class PLIDataItem extends AbstractPLIData {
      * @param astItem the data item abstract syntax subtree
      */
     private void setLevel(final TreeAdaptor adaptor, final Object astItem) {
-        String level = (String) getAttributeValue(
+        String level = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.LEVEL, "1");
         if (level == null) {
             _level = 0;
@@ -249,7 +250,7 @@ public class PLIDataItem extends AbstractPLIData {
      * @param astItem the data item abstract syntax subtree
      */
     private void setName(final TreeAdaptor adaptor, final Object astItem) {
-        _name = (String) getAttributeValue(
+        _name = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.NAME, null);
     }
 
@@ -259,7 +260,7 @@ public class PLIDataItem extends AbstractPLIData {
      * @param astItem the data item abstract syntax subtree
      */
     private void setDimensions(final TreeAdaptor adaptor, final Object astItem) {
-        Object dimensions = getAttribute(
+        Object dimensions = ASTUtils.getAttribute(
                 adaptor, astItem, PLIStructureParser.DIMENSIONS);
         if (dimensions == null) {
             return;
@@ -279,11 +280,11 @@ public class PLIDataItem extends AbstractPLIData {
      * @param astItem the data item abstract syntax subtree
      */
     private void setStringAttributes(final TreeAdaptor adaptor, final Object astItem) {
-        String string = (String) getAttributeValue(
+        String string = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.STRING, null);
-        String length = (String) getAttributeValue(
+        String length = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.LENGTH, null);
-        String varying = (String) getAttributeValue(
+        String varying = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.VARYING, null);
         if (string == null && length == null && varying == null) {
             _isString = false;
@@ -301,7 +302,7 @@ public class PLIDataItem extends AbstractPLIData {
      * @param astItem the data item abstract syntax subtree
      */
     private void setPictureAttributes(final TreeAdaptor adaptor, final Object astItem) {
-        String picture = (String) getAttributeValue(
+        String picture = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.PICTURE, null);
         if (picture != null && picture.length() > 0) {
             _picture = picture.replace("\"", "").replace("'", "");
@@ -367,13 +368,13 @@ public class PLIDataItem extends AbstractPLIData {
      * @param astItem the data item abstract syntax subtree
      */
     private void setNumericAttributes(final TreeAdaptor adaptor, final Object astItem) {
-        String scale = (String) getAttributeValue(
+        String scale = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.SCALE, null);
-        String base = (String) getAttributeValue(
+        String base = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.BASE, null);
-        String precision = (String) getAttributeValue(
+        String precision = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.PRECISION, null);
-        String signed = (String) getAttributeValue(
+        String signed = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.SIGNED, null);
         if (scale == null && base == null && precision == null && signed == null) {
             _isNumeric = false;
@@ -386,8 +387,8 @@ public class PLIDataItem extends AbstractPLIData {
                 _scalingFactor = 0;
             } else {
                 _precision = Integer.parseInt(precision);
-                Object precisionTree = getAttribute(adaptor, astItem, PLIStructureParser.PRECISION);
-                String scalingFactor = (String) getAttributeValue(
+                Object precisionTree = ASTUtils.getAttribute(adaptor, astItem, PLIStructureParser.PRECISION);
+                String scalingFactor = (String) ASTUtils.getAttributeValue(
                         adaptor, precisionTree, PLIStructureParser.SCALING_FACTOR, null);
                 _scalingFactor = (scalingFactor == null) ? 0 : Integer.parseInt(scalingFactor);
             }
@@ -463,7 +464,7 @@ public class PLIDataItem extends AbstractPLIData {
      * @param astItem the data item abstract syntax subtree
      */
     private void setValue(final TreeAdaptor adaptor, final Object astItem) {
-        _value = (String) getAttributeValue(
+        _value = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.VALUE, null);
     }
 
@@ -474,7 +475,7 @@ public class PLIDataItem extends AbstractPLIData {
      * @param astItem the data item abstract syntax subtree
      */
     private void setAligned(final TreeAdaptor adaptor, final Object astItem) {
-        String alignment = (String) getAttributeValue(
+        String alignment = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.ALIGNMENT, null);
         /* Item explicitly declared*/
         if (alignment != null) {
