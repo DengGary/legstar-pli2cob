@@ -112,6 +112,7 @@ Starting from the previous PLI structure, what would be the memory-compatible CO
 
 First it is important to understand that problems stem from the default ALIGNED attributes in PLI. To illustrate this, if the PLI structure was:
 
+{{{
 dcl 1 A UNALIGNED,                        
     3 B char(1),                
     3 C fixed bin(15)       
