@@ -4,6 +4,8 @@ import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeAdaptor;
 import org.antlr.runtime.tree.TreeAdaptor;
 
+import com.legstar.pli2cob.util.ASTUtils;
+
 /**
  * Normalize an abstract syntax tree.
  * <p/>
@@ -22,14 +24,7 @@ import org.antlr.runtime.tree.TreeAdaptor;
  * inherited from the hierarchy. ALIGNED/UNALIGNED are such attributes.
  *
  */
-public final class ASTNormalizer {
-
-    /**
-     * Utility class. No instantiation.
-     */
-    private ASTNormalizer() {
-
-    }
+public class ASTNormalizer {
 
     /**
      * Takes a flat AST produced by {@link PLIStructureParser} and creates a hierarchical AST
@@ -40,7 +35,7 @@ public final class ASTNormalizer {
      * @param ast the flat AST 
      * @return a hierarchical AST
      */
-    public static CommonTree normalize(final CommonTree ast) {
+    public CommonTree normalize(final CommonTree ast) {
         if (ast == null) {
             return null;
         }
@@ -55,7 +50,7 @@ public final class ASTNormalizer {
             Object dataItem = adaptor.getChild(ast, i);
             int type = adaptor.getType(dataItem);
             if (type == PLIStructureParser.DATA_ITEM) {
-                insertNode(adaptor, currentDataItem, dataItem);
+                insertChildNode(adaptor, currentDataItem, dataItem);
                 currentDataItem = dataItem;
             }
         }
@@ -66,49 +61,59 @@ public final class ASTNormalizer {
     /**
      * Inserts a new data item as a child of the current data item or one of its parents.
      * <p/>
-     * If the current data item is not higher the hierarchy than the new data item
-     * (ie has a higher or equal level) then we lookup the parents untl we find one
+     * If the current data item is not higher in the hierarchy than the new data item
+     * (ie it has a higher or equal level) then we lookup the parents until we find one
      * that is higher. Knowing that the root is higher than anyone, this will always
      * find a place to insert the new node.
+     * <p/>
+     * The root node, if it is not a data item (ie is Nil), has an artificial level of
+     * 0 which is lower than any real data item level.
+     * <p/>
+     * When a parent/child relationship is identified, propagates inherited attributes.
      * @param adaptor the tree navigator
-     * @param currentDataItem the current data item
-     * @param newDataItem the new data item
+     * @param currentNode the current data item node
+     * @param newNode the new data item node
      */
-    private static void insertNode(
+    private void insertChildNode(
             final TreeAdaptor adaptor,
-            final Object currentDataItem,
-            final Object newDataItem) {
-        Object parentDataItem = currentDataItem;
-        while (getLevel(adaptor, parentDataItem) >= getLevel(adaptor, newDataItem)) {
-            parentDataItem = adaptor.getParent(parentDataItem);
+            final Object currentNode,
+            final Object newNode) {
+        Object parentNode = currentNode;
+        int parentLevel = ASTUtils.getAttributeIntValue(adaptor, parentNode, PLIStructureParser.LEVEL, 0);
+        int newDataItemLevel = ASTUtils.getAttributeIntValue(adaptor, newNode, PLIStructureParser.LEVEL, 0);
+        while (parentLevel >= newDataItemLevel) {
+            parentNode = adaptor.getParent(parentNode);
+            parentLevel = ASTUtils.getAttributeIntValue(adaptor, parentNode, PLIStructureParser.LEVEL, 0);
         }
-        adaptor.addChild(parentDataItem, newDataItem);
+        adaptor.addChild(parentNode, newNode);
+        propagateAlignment(adaptor, parentNode, newNode);
     }
 
     /**
-     * Gets the PLI level number for a given data item.
+     * If a parent is explicitly aligned or unaligned and the child has no explicit
+     * alignment then it inherits its parent alignment.
      * <p/>
-     * For the root node, if it is not a data item, return an artificial level of 0 which will
-     * be lower than any real data item level.
-     * <p/>
-     * If a data item other than root doesn't have a level we return 1.
-     * @param adaptor the tree navigator
-     * @param dataItem the data item
-     * @return the level number if one is found, 1 otherwise
+     * This results in the child being explicitly aligned or unaligned. We add an artificial
+     * attribute to the AST node.
+     * @param adaptor the tree navigator helper
+     * @param parentNode the parent node
+     * @param childNode the child node
      */
-    private static int getLevel(final TreeAdaptor adaptor, final Object dataItem) {
-        if (adaptor.isNil(dataItem)) {
-            return 0;
-        }
-        int n = adaptor.getChildCount(dataItem);
-        for (int i = 0; i < n; i++) {
-            Object attribute = adaptor.getChild(dataItem, i);
-            if (adaptor.getType(attribute) == PLIStructureParser.LEVEL) {
-                Object value = adaptor.getChild(attribute, 0);
-                return Integer.parseInt(adaptor.getText(value));
+    private void propagateAlignment(
+            final TreeAdaptor adaptor,
+            final Object parentNode,
+            final Object childNode) {
+
+        Object alignmentNode = ASTUtils.getAttribute(adaptor, parentNode, PLIStructureParser.ALIGNMENT);
+        if (alignmentNode != null) {
+            Object childAlignmentNode = ASTUtils.getAttribute(
+                    adaptor, childNode, PLIStructureParser.ALIGNMENT);
+            if (childAlignmentNode == null) {
+                Object newAttributeTree = adaptor.dupTree(alignmentNode);
+                adaptor.addChild(childNode, newAttributeTree);
             }
         }
-        return 1;
+
     }
 
 }

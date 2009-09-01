@@ -76,8 +76,8 @@ public abstract class AbstractTester extends TestCase {
      * @return an antlr abstract syntax tree where nodes are normalized
      */
     public CommonTree parseAndNormalize(final String source) {
-        return ASTNormalizer.normalize(
-                parse(source));
+        ASTNormalizer normalizer = new ASTNormalizer();
+        return normalizer.normalize(parse(source));
     }
 
     /**

@@ -137,7 +137,8 @@ public class PLIStructureToCobol {
         if (_log.isDebugEnabled()) {
             debug("Flat abstract syntax tree:", ast);
         }
-        return ASTNormalizer.normalize(ast);
+        ASTNormalizer normalizer = new ASTNormalizer();
+        return normalizer.normalize(ast);
     }
 
     /**
