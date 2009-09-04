@@ -2,6 +2,8 @@ package com.legstar.pli2cob.util;
 
 import org.antlr.runtime.tree.TreeAdaptor;
 
+import com.legstar.pli2cob.model.PLIDataItem.AlignmentRequirement;
+
 /**
  * Helper methods for Abstract Syntax Tree manipulation.
  *
@@ -81,5 +83,25 @@ public final class ASTUtils {
             }
         }
         return null;
+    }
+    
+    /**
+     * Transformed an alignment requirement into a number.
+     * @param alignementRequirement the alignment requirement
+     * @return how many units (bits or bytes) this alignment requirement represents
+     */
+    public static int getLength(final AlignmentRequirement alignementRequirement) {
+        switch (alignementRequirement) {
+        case BIT:
+            return 1;
+        case HALFWORD:
+            return 2;
+        case FULLWORD:
+            return 4;
+        case DOUBLEWORD:
+            return 8;
+        default:
+            return 1;
+        }
     }
 }

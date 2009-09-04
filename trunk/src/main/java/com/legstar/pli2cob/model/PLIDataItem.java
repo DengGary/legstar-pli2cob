@@ -9,6 +9,7 @@ import org.antlr.runtime.tree.CommonTreeAdaptor;
 import org.antlr.runtime.tree.TreeAdaptor;
 
 import com.legstar.pli2cob.PLIStructureParser;
+import com.legstar.pli2cob.smap.IMappable;
 import com.legstar.pli2cob.util.ASTUtils;
 
 /**
@@ -17,13 +18,16 @@ import com.legstar.pli2cob.util.ASTUtils;
  * This is an immutable class.
  *
  */
-public class PLIDataItem {
+public class PLIDataItem implements IMappable {
 
     /** Level. */
     private int _level;
 
     /** Name. */
     private String _name;
+
+    /** A unique name tracing parents hierarchy. */
+    private String _qualifiedName;
 
     /** Has string attributes. */
     private boolean _isString;
@@ -40,8 +44,11 @@ public class PLIDataItem {
     /** Has numeric attributes. */
     private boolean _isNumeric;
 
-    /** Length attribute. */
+    /** Size in bytes attribute. */
     private int _length;
+
+    /** Size in bits attribute. */
+    private int _bitLength;
 
     /** Float or Fixed. */
     private Scale _scale;
@@ -57,19 +64,19 @@ public class PLIDataItem {
 
     /** True for signed numerics.*/
     private boolean _isSigned;
-    
+
     /** The initial clause content.*/
     private String _value;
-    
+
     /** Item should be aligned on its required boundary.*/
     private boolean _isAligned = true;
-    
+
     /** Alignment requirement.*/
     private AlignmentRequirement _alignmentRequirement;
 
     /** Dimensions list. */
     private List < PLIDataDimension > _dimensions = new ArrayList < PLIDataDimension >();
-    
+
     /** A pattern to detect repetition factor.*/
     private static final Pattern REPETITION_FACTOR_PATTERN = Pattern.compile("\\(\\d+\\)");
 
@@ -81,26 +88,31 @@ public class PLIDataItem {
     }
 
     /**
+     * Convenience constructor. 
      * @param astItem an abstract syntax tree node
+     * @param qualifier used to uniquely identify this item
      */
-    public PLIDataItem(final Object astItem) {
-        this(new CommonTreeAdaptor(), astItem);
+    public PLIDataItem(final Object astItem, final String qualifier) {
+        this(new CommonTreeAdaptor(), astItem, qualifier);
     }
 
     /**
+     * Construct a data item by inspecting an Abstract Syntax Tree node.
      * @param adaptor an antlr adaptor
      * @param astItem an abstract syntax tree node
+     * @param qualifier used to uniquely identify this item
      */
-    public PLIDataItem(final TreeAdaptor adaptor, final Object astItem) {
+    public PLIDataItem(final TreeAdaptor adaptor, final Object astItem, final String qualifier) {
         setLevel(adaptor, astItem);
         setName(adaptor, astItem);
-        setDimensions(adaptor, astItem);
+        setQualifiedName(qualifier);
         setNumericAttributes(adaptor, astItem);
         setStringAttributes(adaptor, astItem);
         setPictureAttributes(adaptor, astItem);
         setValue(adaptor, astItem);
         setAligned(adaptor, astItem);
         setAlignmentRequirement(adaptor, astItem);
+        setDimensions(adaptor, astItem);
     }
 
     /**
@@ -115,6 +127,13 @@ public class PLIDataItem {
      */
     public String getName() {
         return _name;
+    }
+
+    /**
+     * @return data item qualified name
+     */
+    public String getQualifiedName() {
+        return _qualifiedName;
     }
 
     /**
@@ -145,10 +164,17 @@ public class PLIDataItem {
         return _picture;
     }
     /**
-     * @return the length attribute
+     * @return the length attribute. For arrays, it is an item length
      */
     public int getLength() {
         return _length;
+    }
+    
+    /**
+     * @return the size in bits. Useful for BIT data items only.
+     */
+    public int getBitLength() {
+        return _bitLength;
     }
 
     /**
@@ -214,7 +240,7 @@ public class PLIDataItem {
     public boolean isAligned() {
         return _isAligned;
     }
-    
+
     /**
      * @return the type of boundary this data item should be aligned to
      */
@@ -253,13 +279,29 @@ public class PLIDataItem {
         _name = (String) ASTUtils.getAttributeValue(
                 adaptor, astItem, PLIStructureParser.NAME, null);
     }
+    
+    /**
+     * A qualified name uses the qualifier as a prefix.
+     * @param qualifier a qualifier or null if none is to be used
+     */
+    private void setQualifiedName(final String qualifier) {
+        if (qualifier != null && qualifier.length() > 0) {
+            _qualifiedName = qualifier + '.' + getName();
+        } else {
+            _qualifiedName = getName();
+        }
+    }
 
     /**
      * Initial setting for dimensions for a given data item.
+     * <p/>
+     * This must be executed after the length of individual items have been
+     * evaluated. The length is then adjusted depending on dimensions.
      * @param adaptor the tree navigator
      * @param astItem the data item abstract syntax subtree
      */
     private void setDimensions(final TreeAdaptor adaptor, final Object astItem) {
+        int totalLength = getLength();
         Object dimensions = ASTUtils.getAttribute(
                 adaptor, astItem, PLIStructureParser.DIMENSIONS);
         if (dimensions == null) {
@@ -269,9 +311,21 @@ public class PLIDataItem {
         for (int i = 0; i < n; i++) {
             Object dimension = adaptor.getChild(dimensions, i);
             if (adaptor.getType(dimension) == PLIStructureParser.DIMENSION) {
-                _dimensions.add(new PLIDataDimension(adaptor, dimension));
+                PLIDataDimension dataDimension = new PLIDataDimension(adaptor, dimension);
+                _dimensions.add(dataDimension);
+                int items = 0;
+                if (dataDimension.getHbound().getRefer() == null) {
+                    if (dataDimension.getLbound() != null && dataDimension.getLbound().getRefer() == null) {
+                        items =  dataDimension.getHbound().getBound() - dataDimension.getLbound().getBound() + 1;
+                    } else {
+                        items =  dataDimension.getHbound().getBound();
+                    }
+                }
+                totalLength *= items;
             }
         }
+        _length = totalLength;
+
     }
 
     /**
@@ -293,6 +347,12 @@ public class PLIDataItem {
             _length = (length == null) ? 0 : Integer.parseInt(length);
             _stringType = (string == null) ? StringType.CHARACTER : StringType.valueOf(string);
             _varyingType = (varying == null) ? VaryingType.NONVARYING : VaryingType.valueOf(varying);
+            
+            /* The length needs to be a size in bytes*/
+            if (_stringType == StringType.BIT) {
+                _bitLength = _length;
+                _length = (int) Math.ceil((double) _length / 8);
+            }
         }
     }
 
@@ -396,7 +456,7 @@ public class PLIDataItem {
             _length = calcNumericLength();
         }
     }
-    
+
     /**
      * @return the length (in bytes) of an elementary numeric item.
      */
@@ -428,7 +488,7 @@ public class PLIDataItem {
             } else {
                 length = (int) Math.ceil(((double) _precision + 1) / 2);
             }
-            
+
         } else {
             if (_base == Base.BINARY) {
                 if (_precision <= 21) {
@@ -448,7 +508,7 @@ public class PLIDataItem {
                     length = 16;
                 }
             }
-            
+
         }
         return length;
     }
@@ -491,7 +551,7 @@ public class PLIDataItem {
             _isAligned = false;
         }
     }
-    
+
     /**
      * Evaluates the alignment requirement for this data item.
      * <p/>
@@ -507,7 +567,7 @@ public class PLIDataItem {
             }
             return;
         }
-        
+
         if (_isNumeric) {
             if (_scale == Scale.FIXED) {
                 if (_base == Base.BINARY) {
@@ -535,7 +595,7 @@ public class PLIDataItem {
                 } else {
                     _alignmentRequirement = AlignmentRequirement.BYTE;
                 }
-                
+
             } else {
                 if (_base == Base.BINARY) {
                     if (_precision <= 21) {
@@ -585,6 +645,8 @@ public class PLIDataItem {
         sb.append("level : " + getLevel());
         sb.append(", ");
         sb.append("name : " + getName());
+        sb.append(", ");
+        sb.append("qualifiedName : " + getQualifiedName());
         if (getDimensions().size() > 0) {
             sb.append(", ");
             sb.append("dimensions : ");
@@ -596,6 +658,10 @@ public class PLIDataItem {
             sb.append(", ");
             sb.append("stringType : " + getStringType());
             sb.append(", ");
+            if (getStringType() == StringType.BIT) {
+                sb.append("bitLength : " + getBitLength());
+                sb.append(", ");
+            }
             sb.append("length : " + getLength());
             sb.append(", ");
             sb.append("varying : " + getVaryingType());
@@ -626,6 +692,11 @@ public class PLIDataItem {
         sb.append("aligned : " + isAligned());
         sb.append("]");
         return sb.toString();
+    }
+
+    /** {@inheritDoc} */
+    public int getOffset() {
+        return 0;
     }
 
 }
