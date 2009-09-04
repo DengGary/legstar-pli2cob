@@ -3,7 +3,7 @@
     <groupId>com.legsem.legstar</groupId>
     <artifactId>legstar-pli2cob</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.2</version>
     <name>LegStar PLI to COBOL Structure converter</name>
     <description>Converts PLI structures to COBOL structures</description>
 
@@ -13,9 +13,9 @@
     </issueManagement>
 
     <scm>
-        <connection>scm:svn:http://legstar-pli2cob.googlecode.com/svn/trunk/</connection>
-        <developerConnection>scm:svn:https://legstar-pli2cob.googlecode.com/svn/trunk/</developerConnection>
-        <url>http://legstar-pli2cob.googlecode.com/svn/trunk/</url>
+        <connection>scm:svn:http://legstar-pli2cob.googlecode.com/svn/tags/legstar-pli2cob-0.0.2</connection>
+        <developerConnection>scm:svn:https://legstar-pli2cob.googlecode.com/svn/tags/legstar-pli2cob-0.0.2</developerConnection>
+        <url>http://legstar-pli2cob.googlecode.com/svn/tags/legstar-pli2cob-0.0.2</url>
     </scm>
 
     <mailingLists>
