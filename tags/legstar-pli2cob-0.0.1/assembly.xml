@@ -1,0 +1,49 @@
+<!--
+Assembly descriptor for the full distribution.
+-->
+<assembly>
+    <id></id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+
+    <fileSets>
+        <fileSet>
+            <directory>src/main/ant</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>build.xml</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>src/test/resources</directory>
+            <outputDirectory>conf</outputDirectory>
+            <includes>
+                <include>log4j.properties</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>src/main/pli</directory>
+            <outputDirectory>pli</outputDirectory>
+            <includes>
+                <include>*.*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>.</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>readme.txt</include>
+                <include>license.txt</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <scope>runtime</scope>
+        </dependencySet>
+     </dependencySets>
+</assembly>
