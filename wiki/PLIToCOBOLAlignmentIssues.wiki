@@ -9,13 +9,9 @@ One major issue is that PLI and COBOL compilers do not handle data alignment for
 
 A PLI and a COBOL structure are memory-compatible when data created using one structure can be consumed by the other. In other words, each data item in memory must match a compatible PLI or COBOL item description.
 
-= PLI and COBOL handling of in memory alignement=
+= PLI and COBOL handling of in-memory alignement=
 
 In both COBOL and PLI data items have alignment requirements which vary depending on data type and alignment attributes (ALIGNED/UNALIGNED for PLI, SYNCHRONIZED for COBOL).
-
-When data is laid out by compilers, the alignment requirements might result in data items being shifted in order to start on certain boundaries (byte, halfword, fullword or doubleword).
-
-This shifting is identical to adding slack bytes, or bits, after the previous data item in order to start at the predefined boundary.
 
 The following table shows that for data types supported by COBOL, the alignment requirements for elementary data items are identical between PLI and COBOL.
 
@@ -45,6 +41,10 @@ The following table shows that for data types supported by COBOL, the alignment 
 || DEC FLOAT(p) [17<=p]                               || 16                     || Doubleword  || Byte        || N/A                    || N/A            ||
 
 (*) Other than V, K and F
+
+When data is laid out by compilers, the alignment requirements might result in data items being shifted, rather than starting immediatly after the previous item, in order to start on certain boundaries (byte, halfword, fullword or doubleword).
+
+This shifting is identical to adding padding bytes, or bits, after the previous data item in order to start at the needed boundary.
 
 Although elementary data items might have the same alignment requirements, alignment strategies applied by the PLI and COBOL compilers for structures differ. data laid out by one compiler might not be enterpreted correctly by the other (see http://publibz.boulder.ibm.com/epubs/pdf/ceea4160.pdf).
 
@@ -92,23 +92,38 @@ The result is 12 bytes of storage used with 4 padding bytes and 8 useful bytes.
 
 PLI has a sophisticated strategy for structures mapping. The objective is to minimize the number of padding characters.
 
-The algorithm is described here http://publibfp.boulder.ibm.com/epubs/pdf/ibm3lr70.pdf.
+The algorithm is described in the PL/I Language Reference guide http://publibfp.boulder.ibm.com/epubs/pdf/ibm3lr70.pdf under *Structure and union mapping*.
 
-Applied to the previous structure, the memory occupation is only 9 bytes but the structure does not start on a fullword boundary. It is 
-actually shifted 3 bytes in order to satisfy the internal alignment requirements:
+The PL/I structure mapping algorithm applied to:
 
 {{{
 dcl 1 A,                        
-    3 B char(1),          /* starts on byte=0 */                 
-    3 C fixed bin(15),    /* starts on byte=1 */       
-    3 D,                  /* starts on byte=4, 1 padding char */                       
-       4 E char(1),       /* starts on byte=4 */            
-       4 F fixed bin(31); /* starts on byte=5 */     
+    3 B char(1),                 
+    3 C fixed bin(15),       
+    3 D,                       
+       4 E char(1),            
+       4 F fixed bin(31);     
 }}}
 
-=== From PLI to COBOL ===
+Produces the following memory layout:
 
-Starting from the previous PLI structure, what would be the memory-compatible COBOL structure?
+{{{
+|               |               | Doubleword boundary
+|       |       |       |       | Fullword boundary
+|   |   |   |   |   |   |   |   | Halfword boundary
+| | | | | | | | | | | | | | | | | Byte boundary
+ 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+ - - -                            <-- The hang
+       B                          <-- Byte aligned
+         C C                      <-- Halfword aligned
+            -                     <-- Padding byte
+              E                   <-- Byte aligned
+                 F F F F          <-- Fullword aligned
+}}}
+
+The memory occupation is only 9 bytes but the structure does not start on a fullword boundary. It is actually shifted 3 bytes in order to satisfy the internal alignment requirements. These 3 bytes initial offset are sometimes referred to as "the hang".
+
+=== From PLI to COBOL ===
 
 First it is important to understand that problems stem from the default ALIGNED attributes in PLI. To illustrate this, if the PLI structure was:
 
@@ -126,11 +141,13 @@ That would force all data items to be UNALIGNED and therefore, this is a memory-
 {{{
         01 A.                        
             03 B PIC X(1).                
-            03 C PIC S9(4) COMP.          
+            03 C PIC S9(4) COMP-5.          
             03 D.                         
                04 E PIC X(1).             
                04 F PIC S9(9) COMP-5.     
 }}}
+
+Starting from the previous PLI structure, what would be a, memory-compatible, equivalent COBOL structure?
 
 But here we assume that we are bound to an existing PLI structure and have no way to modify it.
 
@@ -145,7 +162,9 @@ Knowing that alignment requirements are the same between the 2 languages at the 
                04 F PIC S9(9) COMP-5 SYNC.     
 }}}
 
-Unfortunately, this is not memory-compatible because COBOL will make no attempt at reducing the padding bytes while PLI will. Given the PLI structure mapping algorithm, the memory-compatible COBOL structure is:
+Unfortunately, this is not memory-compatible because COBOL will make no attempt at reducing the padding bytes while PLI will.
+
+Given the PLI structure mapping algorithm, the memory-compatible COBOL structure is:
  
 {{{
         01 A.                        
@@ -156,3 +175,5 @@ Unfortunately, this is not memory-compatible because COBOL will make no attempt 
                04 E PIC X(1).             
                04 F PIC S9(9) COMP-5 SYNC.     
 }}}
+
+As you can see, an additional FILLER data item was added to map the PLI padding character.
