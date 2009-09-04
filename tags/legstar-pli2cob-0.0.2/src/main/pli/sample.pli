@@ -1,0 +1,10 @@
+declare 1 Payroll, /* major structure name */
+    2 Name, /* minor structure name */
+        3 Last char(20), /* elementary name */
+        3 First char(15),
+    2 Hours,
+        3 Regular fixed dec(5,2),
+        3 Overtime fixed dec(5,2),
+    2 Rate,
+        3 Regular fixed dec(3,2),
+        3 Overtime fixed dec(3,2);
