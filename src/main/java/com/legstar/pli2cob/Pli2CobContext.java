@@ -12,12 +12,18 @@ public class Pli2CobContext {
 
     /** Indicates whether parsing errors will fail the execution; defaults to true.*/
     private boolean _failonerror = true;
+    
+    /** 
+     * Indicates whether additional padding characters should be added to the COBOL
+     * structures to accommodate PLI optimized structures mapping.
+     * */
+    private boolean _syncpad = false;
 
 
     /**
      * Depending on parameters this will throw an exception or log a warning.
      * @param e the parsing exception
-     * @param dataItem the data item which triggerred the exception
+     * @param dataItem the data item which triggered the exception
      * @param log the logger to use for reporting
      * @throws CobolFormatException if error must stop execution
      */
@@ -46,6 +52,22 @@ public class Pli2CobContext {
      */
     public void setFailonerror(final boolean failonerror) {
         _failonerror = failonerror;
+    }
+
+    /**
+     * @return whether additional padding characters should be added to the COBOL
+     * structures to accommodate PLI optimized structures mapping
+     */
+    public boolean isSyncpad() {
+        return _syncpad;
+    }
+
+    /**
+     * @param syncpad whether additional padding characters should be added to the COBOL
+     * structures to accommodate PLI optimized structures mapping
+     */
+    public void setSyncpad(final boolean syncpad) {
+        _syncpad = syncpad;
     }
 
 }

@@ -13,6 +13,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.legstar.pli2cob.PLIStructureParser.script_return;
+import com.legstar.pli2cob.smap.ASTStructureMapper;
+import com.legstar.pli2cob.smap.StructureMappingException;
 
 /**
  * Implements a PLI Structure to COBOL converter.
@@ -62,7 +64,7 @@ public class PLIStructureToCobol {
             PLIStructureParsingException,
             CobolFormatException,
             PLIStructureReadingException {
-        return convert(normalize(parse(lexify(clean(pliSource)))));
+        return convert(syncpad(normalize(parse(lexify(clean(pliSource))))));
     }
 
 
@@ -139,6 +141,29 @@ public class PLIStructureToCobol {
         }
         ASTNormalizer normalizer = new ASTNormalizer();
         return normalizer.normalize(ast);
+    }
+
+    /**
+     * If requested this will add padding characters where needed in the abstract
+     * syntax tree in order for COBOL to map the PLI structure alignments. 
+     * @param ast the abstract syntax tree produced by normalizer (hierarchy)
+     * @return a hierarchical abstract syntax tree with extra padding bytes where needed
+     * @throws PLIStructureParsingException if padding algorithm fails
+     */
+    public CommonTree syncpad(final CommonTree ast) throws PLIStructureParsingException {
+        String errorMessage = "Padding for PLI structure alignments failed.";
+        try {
+            if (getContext().isSyncpad()) {
+                ASTStructureMapper mapper = new ASTStructureMapper();
+                return mapper.map(ast);
+            } else {
+                _log.info("Padding for PLI structure alignments was not requested.");
+                return ast;
+            }
+        } catch (StructureMappingException e) {
+            _log.error(errorMessage, e);
+            throw (new PLIStructureParsingException(e));
+        }
     }
 
     /**

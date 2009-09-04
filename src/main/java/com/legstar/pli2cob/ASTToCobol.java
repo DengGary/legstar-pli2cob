@@ -6,6 +6,7 @@ import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeAdaptor;
 import org.antlr.runtime.tree.TreeAdaptor;
 import org.antlr.stringtemplate.StringTemplate;
@@ -38,13 +39,13 @@ public class ASTToCobol {
     /** Detects repetition factors in PLI picture.*/
     private static final Pattern REPETITION_FACTOR_PATTERN =
         Pattern.compile("\\(\\d+\\)");
-    
+
     /** Execution parameters for the PLI to COBOL utility. */
     private Pli2CobContext _context;
 
     /** Logger. */
     private final Log _log = LogFactory.getLog(getClass());
-    
+
     /**
      * @param context execution parameters for the PLI to COBOL utility
      */
@@ -61,7 +62,7 @@ public class ASTToCobol {
      * @throws CobolFormatException if conversion fails
      */
     public String convert(
-            final Object ast) throws CobolFormatException {
+            final CommonTree ast) throws CobolFormatException {
         TreeAdaptor adaptor = new CommonTreeAdaptor();
         _stgGroup = new StringTemplateGroup(
                 new BufferedReader(
@@ -69,7 +70,14 @@ public class ASTToCobol {
                                 ASTToCobol.class.getResourceAsStream(
                                         STG_FILE_NAME))));
         StringTemplate cobolFragmentST = _stgGroup.getInstanceOf("cobolFragment");
-        setDataDescription(adaptor, cobolFragmentST, ast);
+        if (ast != null && ast.isNil()) {
+            int n = adaptor.getChildCount(ast);
+            for (int i = 0; i < n; i++) {
+                setDataDescription(adaptor, cobolFragmentST, adaptor.getChild(ast, i), null);
+            }
+        } else {
+            setDataDescription(adaptor, cobolFragmentST, ast, null);
+        }
         CobolFormatter formatter = new CobolFormatter();
         return formatter.format(new StringReader(cobolFragmentST.toString()));
     }
@@ -79,19 +87,24 @@ public class ASTToCobol {
      * @param adaptor the antlr tree adaptor in use
      * @param cobolFragmentST the main string template that contains the data descriptions produced
      * @param astItem the abstract syntax subtree
+     * @param qualifier a prefix to help uniquely identify data items
      * @throws CobolFormatException if formatting fails
      */
     protected void setDataDescription(
             final TreeAdaptor adaptor,
             final StringTemplate cobolFragmentST,
-            final Object astItem) throws CobolFormatException {
+            final Object astItem,
+            final String qualifier) throws CobolFormatException {
         if (adaptor.getType(astItem) == PLIStructureParser.DATA_ITEM) {
+            PLIDataItem dataItem = new PLIDataItem(adaptor, astItem, qualifier);
             cobolFragmentST.setAttribute("dataDescriptions",
-                    getDataDescriptionST(adaptor, astItem));
-        }
-        int n = adaptor.getChildCount(astItem);
-        for (int i = 0; i < n; i++) {
-            setDataDescription(adaptor, cobolFragmentST, adaptor.getChild(astItem, i));
+                    getDataDescriptionST(adaptor, dataItem));
+            int n = adaptor.getChildCount(astItem);
+            String childQualifier = (qualifier == null || qualifier.length() == 0)
+            ? dataItem.getName() : qualifier + '.' + dataItem.getName();
+            for (int i = 0; i < n; i++) {
+                setDataDescription(adaptor, cobolFragmentST, adaptor.getChild(astItem, i), childQualifier);
+            }
         }
     }
 
@@ -100,13 +113,13 @@ public class ASTToCobol {
      * <p/>
      * Not all PLI constructs are supported. Unsupported ones are ignored.
      * @param adaptor the antlr tree adaptor in use
-     * @param astItem the abstract syntax node
+     * @param dataItem the data item
      * @return an antlr string template
      * @throws CobolFormatException if formatting fails
      */
     protected StringTemplate getDataDescriptionST(
-            final TreeAdaptor adaptor, final Object astItem) throws CobolFormatException {
-        PLIDataItem dataItem = new PLIDataItem(adaptor, astItem);
+            final TreeAdaptor adaptor,
+            final PLIDataItem dataItem) throws CobolFormatException {
         StringTemplate nodeST;
         try {
             nodeST = _stgGroup.getInstanceOf("dataDescription");
@@ -298,13 +311,13 @@ public class ASTToCobol {
                     nodeST.setAttribute("_length", dataItem.getLength());
                     break;
                 case BIT:
-                    if (dataItem.getLength() % 8 != 0) {
+                    if (dataItem.getBitLength() % 8 != 0) {
                         throw new CobolFormatException(
-                                "Unsupported bit length: " + dataItem.getLength());
+                                "Unsupported bit length: " + dataItem.getBitLength());
                     }
-                    _log.warn("Bit item converted to PIC X(" + dataItem.getLength() / 8 + "). Item=" + dataItem);
+                    _log.warn("Bit item converted to PIC X(" + dataItem.getLength() + "). Item=" + dataItem);
                     nodeST = _stgGroup.getInstanceOf("characterPictureValue");
-                    nodeST.setAttribute("_length", dataItem.getLength() / 8);
+                    nodeST.setAttribute("_length", dataItem.getLength());
                     break;
                 default:
                     if (dataItem.getPicture() == null) {

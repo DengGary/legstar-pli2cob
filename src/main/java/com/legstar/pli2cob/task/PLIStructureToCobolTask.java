@@ -59,6 +59,12 @@ public class PLIStructureToCobolTask extends Task {
     /** Indicates whether parsing errors will fail the execution; defaults to true.*/
     private boolean _failonerror = true;
 
+    /** 
+     * Indicates whether additional padding characters should be added to the COBOL
+     * structures to accommodate PLI optimized structures mapping.
+     * */
+    private boolean _syncpad = false;
+
     /**
      *  The ant execution method.
      *  Check parameters and produce COBOL fragment.
@@ -136,6 +142,7 @@ public class PLIStructureToCobolTask extends Task {
     private Pli2CobContext createContext() {
         Pli2CobContext context = new Pli2CobContext();
         context.setFailonerror(isFailonerror());
+        context.setSyncpad(isSyncpad());
         return context;
     }
 
@@ -237,6 +244,22 @@ public class PLIStructureToCobolTask extends Task {
      */
     public void setFailonerror(final boolean failonerror) {
         _failonerror = failonerror;
+    }
+
+    /**
+     * @return whether additional padding characters should be added to the COBOL
+     * structures to accommodate PLI optimized structures mapping
+     */
+    public boolean isSyncpad() {
+        return _syncpad;
+    }
+
+    /**
+     * @param syncpad whether additional padding characters should be added to the COBOL
+     * structures to accommodate PLI optimized structures mapping
+     */
+    public void setSyncpad(final boolean syncpad) {
+        _syncpad = syncpad;
     }
 
     /**

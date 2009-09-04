@@ -1,0 +1,41 @@
+ /********************************************************************/ 08400000
+ /*                                                                  */ 08800000
+ /* Module Name = DFH$PFIL                                           */ 09200000
+ /*                                                                  */ 09600000
+ /* Descriptive Name = File Layout for Sample Application            */ 10000000
+ /*                                                                  */ 10400000
+ /* @BANNER_START                           01                       */ 10466600
+ /* Licensed Materials - Property of IBM                             */ 10533200
+ /*                                                                  */ 10599800
+ /* 5697-E93                                                         */ 10666400
+ /*                                                                  */ 10733000
+ /* (C) Copyright IBM Corp. 1984, 1991                               */ 10799600
+ /*                                                                  */ 10866200
+ /* CICS                                                             */ 10932800
+ /* (Element of CICS Transaction Server                              */ 10999400
+ /* for z/OS, Version 2 Release 3)                                   */ 11066000
+ /* @BANNER_END                                                      */ 11132600
+ /*                                                                  */ 11200000
+ /* STATUS = 3.3.0                                                   */ 11600000
+ /*                                                                  */ 12000000
+ /*------------------------------------------------------------------*/ 12400000
+ /*                                                                  */ 12800000
+ /* Change Activity:                                                 */ 13200000
+ /* $SEG(DFH$PFIL),COMP(SAMPLES),PROD(CICS/VS):                      */ 13400000
+ /*                                                                  */ 13600000
+ /*   PN= REASON REL YYMMDD HDXIII : REMARKS                         */ 14000000
+ /*  $P0= Mnnnnn 170 840814 HDZZUNK: Created.                        */ 14500000
+ /*  $P1= M90474 330 910807 HDBWSH : Prologue fixed.                 */ 14700000
+ /*                                                                  */ 15000000
+ /********************************************************************/ 15500000
+ DCL 1 FILEA,                                                           16000000
+       2 FILEREC,                                                       24000000
+         3 STAT CHAR(1),                                                32000000
+         3 NUMB PIC '(6)9',                                             40000000
+         3 NAME CHAR(20),                                               48000000
+         3 ADDRX CHAR(20),                                              56000000
+         3 PHONE CHAR(8),                                               64000000
+         3 DATEX CHAR(8),                                               73000000
+         3 AMOUNT CHAR(8),                                              82000000
+         3 COMMENT CHAR(9);                                             91000000
+

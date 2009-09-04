@@ -15,6 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.legstar.pli2cob.PLIStructureParser.script_return;
+import com.legstar.pli2cob.model.PLIDataItem;
 
 import junit.framework.TestCase;
 
@@ -92,6 +93,15 @@ public abstract class AbstractTester extends TestCase {
         ASTToCobol converter = new ASTToCobol(new Pli2CobContext());
         String cobol = converter.convert(parseAndNormalize(source));
         assertEquals(expected, cobol);
+    }
+
+    /**
+     * @param source a single declare source fragment
+     * @return the corresponding data item
+     */
+    public PLIDataItem getPLIDataItem(final String source) {
+        CommonTree ast = parseAndNormalize(source);
+        return new PLIDataItem(ast, null);
     }
 
     /**

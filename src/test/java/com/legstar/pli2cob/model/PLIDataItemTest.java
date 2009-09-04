@@ -20,6 +20,7 @@ public class PLIDataItemTest extends AbstractTester {
         parseCheck("dcl 1 A bin fixed(5,2);",
                 "[level : 1,"
                 + " name : A,"
+                + " qualifiedName : parent.A,"
                 + " scale : FIXED,"
                 + " base : BINARY,"
                 + " signed : true,"
@@ -31,6 +32,7 @@ public class PLIDataItemTest extends AbstractTester {
         parseCheck("dcl 1 A bin fixed(16,2) unsigned;",
                 "[level : 1,"
                 + " name : A,"
+                + " qualifiedName : parent.A,"
                 + " scale : FIXED,"
                 + " base : BINARY,"
                 + " signed : false,"
@@ -42,6 +44,7 @@ public class PLIDataItemTest extends AbstractTester {
         parseCheck("dcl 1 A dec fixed(16,2);",
                 "[level : 1,"
                 + " name : A,"
+                + " qualifiedName : parent.A,"
                 + " scale : FIXED,"
                 + " base : DECIMAL,"
                 + " signed : true,"
@@ -53,6 +56,7 @@ public class PLIDataItemTest extends AbstractTester {
         parseCheck("dcl 1 A dec float(3);",
                 "[level : 1,"
                 + " name : A,"
+                + " qualifiedName : parent.A,"
                 + " scale : FLOAT,"
                 + " base : DECIMAL,"
                 + " signed : true,"
@@ -64,6 +68,7 @@ public class PLIDataItemTest extends AbstractTester {
         parseCheck("dcl 1 A bin float(42);",
                 "[level : 1,"
                 + " name : A,"
+                + " qualifiedName : parent.A,"
                 + " scale : FLOAT,"
                 + " base : BINARY,"
                 + " signed : true,"
@@ -80,6 +85,7 @@ public class PLIDataItemTest extends AbstractTester {
         parseCheck("dcl 1 A char(1);",
                 "[level : 1,"
                 + " name : A,"
+                + " qualifiedName : parent.A,"
                 + " stringType : CHARACTER,"
                 + " length : 1,"
                 + " varying : NONVARYING,"
@@ -88,6 +94,7 @@ public class PLIDataItemTest extends AbstractTester {
         parseCheck("dcl 1 A char(1) aligned;",
                 "[level : 1,"
                 + " name : A,"
+                + " qualifiedName : parent.A,"
                 + " stringType : CHARACTER,"
                 + " length : 1,"
                 + " varying : NONVARYING,"
@@ -96,6 +103,7 @@ public class PLIDataItemTest extends AbstractTester {
         parseCheck("dcl 1 A bin fixed(5,2);",
                 "[level : 1,"
                 + " name : A,"
+                + " qualifiedName : parent.A,"
                 + " scale : FIXED,"
                 + " base : BINARY,"
                 + " signed : true,"
@@ -107,6 +115,7 @@ public class PLIDataItemTest extends AbstractTester {
         parseCheck("dcl 1 A bin fixed(5,2) aligned;",
                 "[level : 1,"
                 + " name : A,"
+                + " qualifiedName : parent.A,"
                 + " scale : FIXED,"
                 + " base : BINARY,"
                 + " signed : true,"
@@ -118,6 +127,7 @@ public class PLIDataItemTest extends AbstractTester {
         parseCheck("dcl 1 A bin fixed(5,2) unaligned;",
                 "[level : 1,"
                 + " name : A,"
+                + " qualifiedName : parent.A,"
                 + " scale : FIXED,"
                 + " base : BINARY,"
                 + " signed : true,"
@@ -149,6 +159,32 @@ public class PLIDataItemTest extends AbstractTester {
         dataItem = parseItem("dcl 1 A bin fixed(15) unaligned;");
         assertEquals(AlignmentRequirement.BYTE, dataItem.getAlignmentRequirement());
     }
+    
+    /**
+     * Check that we know how to calculate array sizes.
+     */
+    public void testArrayLength() {
+        
+        PLIDataItem dataItem;
+        
+        dataItem = parseItem("dcl 1 A char(1);");
+        assertEquals(1, dataItem.getLength());
+        
+        dataItem = parseItem("dcl 1 A(2) char(1);");
+        assertEquals(2, dataItem.getLength());
+        
+        dataItem = parseItem("dcl 1 A(1:2) char(1);");
+        assertEquals(2, dataItem.getLength());
+        
+        dataItem = parseItem("dcl 1 A(2:2) char(1);");
+        assertEquals(1, dataItem.getLength());
+        
+        dataItem = parseItem("dcl 1 A(2 refer(X)) char(1);");
+        assertEquals(0, dataItem.getLength());
+        
+        dataItem = parseItem("dcl 1 A(2,3) char(1);");
+        assertEquals(6, dataItem.getLength());
+    }
 
     /**
      * A generic test helper that takes a source fragment and checks the result.
@@ -166,6 +202,6 @@ public class PLIDataItemTest extends AbstractTester {
      */
     private PLIDataItem parseItem(final String source) {
         CommonTree ast = parse(source);
-        return new PLIDataItem(ast);
+        return new PLIDataItem(ast, "parent");
     }
 }
