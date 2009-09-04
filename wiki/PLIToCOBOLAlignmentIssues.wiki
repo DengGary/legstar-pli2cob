@@ -156,7 +156,7 @@ The rest of this discussion is for those who can't change the PL/I structure.
 
 == The hang issue ==
 
-When a PL/I and a COBOL program share a pointer to a memory location the presence of the hang is a potential issue. COBOL will assume data starts on the first byte at the memory address while PL/I assumes data starts after the hang.
+When a PL/I and a COBOL program share a pointer to a memory location, the presence of the hang is a potential issue. COBOL will assume data starts on the first byte at the memory address while PL/I assumes data starts after the hang.
 
 In such a situation, the only solution is for the COBOL structure to start with a dummy FILLER with the exact same size as the hang.
 
