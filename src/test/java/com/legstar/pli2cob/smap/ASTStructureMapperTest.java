@@ -380,7 +380,7 @@ public class ASTStructureMapperTest extends AbstractTester {
     }
 
     /**
-     * A simple structure with a padding node.
+     * A simple structure with a padding node and no hang.
      */
     public void testMappingSimpleStructure() {
         mapAndCheck("dcl 1 A,"
@@ -448,7 +448,55 @@ public class ASTStructureMapperTest extends AbstractTester {
                 + "  n49 -> n56 // \"DATA_ITEM\" -> \"BASE\""
                 + "  n56 -> n57 // \"BASE\" -> \"BINARY\""
                 + "  n49 -> n58 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n58 -> n59 // \"PRECISION\" -> \"31\"");
+                + "  n58 -> n59 // \"PRECISION\" -> \"31\"",
+                
+        false);
+    }
+
+    /**
+     * A simple structure with a hang.
+     */
+    public void testMappingSimpleStructureWithHang() {
+        mapAndCheck("dcl 1 A,"
+                + " 2 B char(1),"
+                + " 2 C fixed bin(15);",
+                
+        "  n0 -> n1 // \"\" -> \"DATA_ITEM\""
+                + "  n1 -> n2 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n2 -> n3 // \"LEVEL\" -> \"1\""
+                + "  n1 -> n4 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n4 -> n5 // \"NAME\" -> \"A\""
+                + "  n1 -> n6 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n6 -> n7 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n7 -> n8 // \"LEVEL\" -> \"2\""
+                + "  n6 -> n9 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n9 -> n10 // \"NAME\" -> \"FILLER\""
+                + "  n6 -> n11 // \"DATA_ITEM\" -> \"STRING\""
+                + "  n11 -> n12 // \"STRING\" -> \"CHARACTER\""
+                + "  n6 -> n13 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n13 -> n14 // \"LENGTH\" -> \"1\""
+                + "  n1 -> n15 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n15 -> n16 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n16 -> n17 // \"LEVEL\" -> \"2\""
+                + "  n15 -> n18 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n18 -> n19 // \"NAME\" -> \"B\""
+                + "  n15 -> n20 // \"DATA_ITEM\" -> \"STRING\""
+                + "  n20 -> n21 // \"STRING\" -> \"CHARACTER\""
+                + "  n15 -> n22 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n22 -> n23 // \"LENGTH\" -> \"1\""
+                + "  n1 -> n24 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n24 -> n25 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n25 -> n26 // \"LEVEL\" -> \"2\""
+                + "  n24 -> n27 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n27 -> n28 // \"NAME\" -> \"C\""
+                + "  n24 -> n29 // \"DATA_ITEM\" -> \"SCALE\""
+                + "  n29 -> n30 // \"SCALE\" -> \"FIXED\""
+                + "  n24 -> n31 // \"DATA_ITEM\" -> \"BASE\""
+                + "  n31 -> n32 // \"BASE\" -> \"BINARY\""
+                + "  n24 -> n33 // \"DATA_ITEM\" -> \"PRECISION\""
+                + "  n33 -> n34 // \"PRECISION\" -> \"15\"",
+                
+        true);
     }
 
     /**
@@ -553,11 +601,15 @@ public class ASTStructureMapperTest extends AbstractTester {
      * inserting passing nodes into the abstract syntax tree.
      * @param source a PLI source fragment
      * @param expected the expected AST graph
+     * @param synchang true if padding should be added for PL/I hang
      */
-    private void mapAndCheck(final String source, final String expected) {
+    private void mapAndCheck(final String source,
+            final String expected,
+            final boolean synchang) {
         CommonTree ast = parseAndNormalize(source);
         try {
             ASTStructureMapper mapper = new ASTStructureMapper();
+            mapper.getContext().setSynchang(synchang);
             mapper.map(ast);
             String graph = getGraph(ast);
             assertEquals(expected, getSubGraph(graph));

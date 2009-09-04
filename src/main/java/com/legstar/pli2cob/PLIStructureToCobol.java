@@ -64,7 +64,7 @@ public class PLIStructureToCobol {
             PLIStructureParsingException,
             CobolFormatException,
             PLIStructureReadingException {
-        return convert(syncpad(normalize(parse(lexify(clean(pliSource))))));
+        return convert(map(normalize(parse(lexify(clean(pliSource))))));
     }
 
 
@@ -144,22 +144,18 @@ public class PLIStructureToCobol {
     }
 
     /**
-     * If requested this will add padding characters where needed in the abstract
+     * Analyzes the PL/I structures mapping. This can produce reports and,
+     * if requested, add padding characters where needed in the abstract
      * syntax tree in order for COBOL to map the PLI structure alignments. 
      * @param ast the abstract syntax tree produced by normalizer (hierarchy)
      * @return a hierarchical abstract syntax tree with extra padding bytes where needed
      * @throws PLIStructureParsingException if padding algorithm fails
      */
-    public CommonTree syncpad(final CommonTree ast) throws PLIStructureParsingException {
-        String errorMessage = "Padding for PLI structure alignments failed.";
+    public CommonTree map(final CommonTree ast) throws PLIStructureParsingException {
+        String errorMessage = "Mapping PLI structures failed.";
         try {
-            if (getContext().isSyncpad()) {
-                ASTStructureMapper mapper = new ASTStructureMapper();
-                return mapper.map(ast);
-            } else {
-                _log.info("Padding for PLI structure alignments was not requested.");
-                return ast;
-            }
+            ASTStructureMapper mapper = new ASTStructureMapper(getContext());
+            return mapper.map(ast);
         } catch (StructureMappingException e) {
             _log.error(errorMessage, e);
             throw (new PLIStructureParsingException(e));
