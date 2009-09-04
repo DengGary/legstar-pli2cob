@@ -3,19 +3,19 @@
 
 = Introduction =
 
-While it is relatively straightforward to map elementary data items from PLI to COBOL, it is harder to map structures and unions.
+While it is relatively straightforward to map elementary data items from PL/I to COBOL, it is harder to map structures and unions.
 
-One major issue is that PLI and COBOL compilers do not handle data alignment for structures in the same way.
+One major issue is that PL/I and COBOL compilers do not handle data alignment for structures in the same way.
 
-A PLI and a COBOL structure are memory-compatible when data created using one structure can be consumed by the other. In other words, each data item in memory must match a compatible PLI or COBOL item description.
+A PL/I and a COBOL structure are memory-compatible when data created using one structure can be consumed by the other. In other words, each data item in memory must match a compatible PL/I or COBOL item description.
 
-= PLI and COBOL handling of in-memory alignement=
+= PL/I and COBOL handling of in-memory alignement=
 
-In both COBOL and PLI data items have alignment requirements which vary depending on data type and alignment attributes (ALIGNED/UNALIGNED for PLI, SYNCHRONIZED for COBOL).
+In both COBOL and PL/I data items have alignment requirements which vary depending on data type and alignment attributes (ALIGNED/UNALIGNED for PL/I, SYNCHRONIZED for COBOL).
 
-The following table shows that for data types supported by COBOL, the alignment requirements for elementary data items are identical between PLI and COBOL.
+The following table shows that for data types supported by COBOL, the alignment requirements for elementary data items are identical between PL/I and COBOL.
 
-|| *PLI data type*                                    || *Storage (Bytes)*      || *ALIGNED*   || *UNALIGNED* || *COBOL data type*      || *SYNCHRONIZED* || 
+|| *PL/I data type*                                    || *Storage (Bytes)*      || *ALIGNED*   || *UNALIGNED* || *COBOL data type*      || *SYNCHRONIZED* || 
 || BIT(n)                                             || n bits                 || Byte        || Bit         || N/A                    || N/A            ||
 || CHAR(n)                                            || n                      || Byte        || Byte        || PIC X(n)               || Byte           ||
 || CHAR(n) VARZ                                       || n + 1                  || Byte        || Byte        || N/A                    || N/A            ||
@@ -46,51 +46,27 @@ When data is laid out by compilers, the alignment requirements might result in d
 
 This shifting is identical to adding padding bytes, or bits, after the previous data item in order to start at the needed boundary.
 
-Although elementary data items might have the same alignment requirements, alignment strategies applied by the PLI and COBOL compilers for structures differ. data laid out by one compiler might not be enterpreted correctly by the other (see http://publibz.boulder.ibm.com/epubs/pdf/ceea4160.pdf).
+Although elementary data items might have the same alignment requirements, alignment strategies applied by the PL/I and COBOL compilers for structures differ. data laid out by one compiler might not be enterpreted correctly by the other (see http://publibz.boulder.ibm.com/epubs/pdf/ceea4160.pdf).
 
 == Default alignment attribute values ==
 
-For PLI, UNALIGNED is the default for bit data, character data, graphic data, widechar data and numeric character data. ALIGNED is the default for all other types of data. This is important because it means some widely used data types, such as FIXED BINARY, are ALIGNED by default.
+For PL/I, UNALIGNED is the default for bit data, character data, graphic data, widechar data and numeric character data. ALIGNED is the default for all other types of data. This is important because it means some widely used data types, such as FIXED BINARY, are ALIGNED by default.
 
 For COBOL, all data types are not SYNCHRONIZED by default.
 
 == Alignment attribute value inheritance ==
 
-In PLI, ALIGNED/UNALIGNED attributes are inherited from a parent in a structure. Childs can override the parent aligment by explicitly setting the attribute.
+In PL/I, ALIGNED/UNALIGNED attributes are inherited from a parent in a structure. Childs can override the parent aligment by explicitly setting the attribute.
 
 In COBOL, SYNCHRONIZED can be inherited from a parent but only at the 01 level. Child items have no way to override the SYNCHRONIZED attribute.
 
 == Structures mapping ==
 
-This is probably where the most differences exist between PLI and COBOL alignment handling.
+This is probably where the most differences exist between PL/I and COBOL alignment handling.
 
-=== COBOL structure mapping strategy ===
+=== PL/I structure mapping strategy ===
 
-COBOL does not attempt to optimize the padding needed to satisfy the alignment requirements.
-
-All structures start on a doubleword boundary.
-
-Then each item from the structure is taken in turn (in the order they appear in the structure) and the item is shifted if necessary by as much bytes as needed to satisfy the alignement requirement.
-
-Applying this strategy to structure:
-{{{
-        01 A SYNC.                        
-       * STARTS ON BYTE=0                 
-            03 B PIC X(1).                
-       * STARTS ON BYTE=2, 1 PADDING CHAR 
-            03 C PIC S9(4) COMP.          
-            03 D.                         
-       * STARTS ON BYTE=4                 
-               04 E PIC X(1).             
-       * STARTS ON BYTE=8, 3 PADDING CHAR 
-               04 F PIC S9(9) COMP-5.     
-}}}
-
-The result is 12 bytes of storage used with 4 padding bytes and 8 useful bytes.
-
-=== PLI structure mapping strategy ===
-
-PLI has a sophisticated strategy for structures mapping. The objective is to minimize the number of padding characters.
+PL/I has a sophisticated strategy for structures mapping. The objective is to minimize the number of padding characters.
 
 The algorithm is described in the PL/I Language Reference guide http://publibfp.boulder.ibm.com/epubs/pdf/ibm3lr70.pdf under *Structure and union mapping*.
 
@@ -121,11 +97,47 @@ Produces the following memory layout:
                  F F F F          <-- Fullword aligned
 }}}
 
-The memory occupation is only 9 bytes but the structure does not start on a fullword boundary. It is actually shifted 3 bytes in order to satisfy the internal alignment requirements. These 3 bytes initial offset are sometimes referred to as "the hang".
+The memory occupation is only 9 bytes but the structure does not start on a doubleword boundary. It is actually shifted 3 bytes in order to satisfy the internal alignment requirements. These 3 bytes initial offset are sometimes referred to as "the hang".
 
-=== From PLI to COBOL ===
+=== COBOL structure mapping strategy ===
 
-First it is important to understand that problems stem from the default ALIGNED attributes in PLI. To illustrate this, if the PLI structure was:
+COBOL does not attempt to optimize the padding needed to satisfy the alignment requirements.
+
+All structures start on a doubleword boundary.
+
+Then each item from the structure is taken in turn (in the order they appear in the structure) and the item is shifted if necessary by as much bytes as needed to satisfy the alignement requirement.
+
+Applying this strategy to structure:
+{{{
+        01 A SYNC.                        
+            03 B PIC X(1).                
+            03 C PIC S9(4) COMP.          
+            03 D.                         
+               04 E PIC X(1).             
+               04 F PIC S9(9) COMP.     
+}}}
+
+Produces the following memory layout:
+
+{{{
+|               |               | Doubleword boundary
+|       |       |       |       | Fullword boundary
+|   |   |   |   |   |   |   |   | Halfword boundary
+| | | | | | | | | | | | | | | | | Byte boundary
+ 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+ B                                <-- Byte aligned
+   -                              <-- Padding byte
+     C C                          <-- Halfword aligned
+         E                        <-- Byte aligned
+           - - -                  <-- Padding byte
+                 F F F F          <-- Fullword aligned
+}}}
+
+The result is 12 bytes of storage used with 4 padding bytes and 8 useful bytes.
+
+=== From PL/I to COBOL ===
+
+First it is important to understand that problems stem from the default ALIGNED attributes in PL/I. To illustrate this, if the PL/I structure was:
 
 {{{
 dcl 1 A UNALIGNED,                        
@@ -147,9 +159,9 @@ That would force all data items to be UNALIGNED and therefore, this is a memory-
                04 F PIC S9(9) COMP-5.     
 }}}
 
-Starting from the previous PLI structure, what would be a, memory-compatible, equivalent COBOL structure?
+Starting from the previous PL/I structure, what would be a, memory-compatible, equivalent COBOL structure?
 
-But here we assume that we are bound to an existing PLI structure and have no way to modify it.
+But here we assume that we are bound to an existing PL/I structure and have no way to modify it.
 
 Knowing that alignment requirements are the same between the 2 languages at the elementary data item level, the first (naive) approach is simply to translate the default ALIGNED attribute into COBOL SYNCHRONIZED. This would yield this COBOL structure:
  
@@ -162,9 +174,9 @@ Knowing that alignment requirements are the same between the 2 languages at the 
                04 F PIC S9(9) COMP-5 SYNC.     
 }}}
 
-Unfortunately, this is not memory-compatible because COBOL will make no attempt at reducing the padding bytes while PLI will.
+Unfortunately, this is not memory-compatible because COBOL will make no attempt at reducing the padding bytes while PL/I will.
 
-Given the PLI structure mapping algorithm, the memory-compatible COBOL structure is:
+Given the PL/I structure mapping algorithm, the memory-compatible COBOL structure is:
  
 {{{
         01 A.                        
@@ -176,4 +188,4 @@ Given the PLI structure mapping algorithm, the memory-compatible COBOL structure
                04 F PIC S9(9) COMP-5 SYNC.     
 }}}
 
-As you can see, an additional FILLER data item was added to map the PLI padding character.
+As you can see, an additional FILLER data item was added to map the PL/I padding character.
