@@ -60,10 +60,17 @@ public class PLIStructureToCobolTask extends Task {
     private boolean _failonerror = true;
 
     /** 
-     * Indicates whether additional padding characters should be added to the COBOL
-     * structures to accommodate PLI optimized structures mapping.
+     * Indicates whether additional padding bytes should be added to COBOL
+     * structures to accommodate PLI hidden alignment mapping bytes.
      * */
-    private boolean _syncpad = false;
+    private boolean _syncpad = true;
+
+    /** 
+     * Indicates whether initial padding bytes should be added to COBOL
+     * structures to accommodate PLI potential structure offsetting from
+     * doubleword boundaries.
+     * */
+    private boolean _synchang = false;
 
     /**
      *  The ant execution method.
@@ -143,6 +150,7 @@ public class PLIStructureToCobolTask extends Task {
         Pli2CobContext context = new Pli2CobContext();
         context.setFailonerror(isFailonerror());
         context.setSyncpad(isSyncpad());
+        context.setSynchang(isSynchang());
         return context;
     }
 
@@ -247,19 +255,37 @@ public class PLIStructureToCobolTask extends Task {
     }
 
     /**
-     * @return whether additional padding characters should be added to the COBOL
-     * structures to accommodate PLI optimized structures mapping
+     * @return whether additional padding bytes should be added to COBOL
+     * structures to accommodate PLI hidden alignment mapping bytes
      */
     public boolean isSyncpad() {
         return _syncpad;
     }
 
     /**
-     * @param syncpad whether additional padding characters should be added to the COBOL
-     * structures to accommodate PLI optimized structures mapping
+     * @param syncpad whether additional padding bytes should be added to COBOL
+     * structures to accommodate PLI hidden alignment mapping bytes
      */
     public void setSyncpad(final boolean syncpad) {
         _syncpad = syncpad;
+    }
+
+    /**
+     * @return whether initial padding bytes should be added to COBOL
+     * structures to accommodate PLI potential structure offsetting from
+     * doubleword boundaries
+     */
+    public boolean isSynchang() {
+        return _synchang;
+    }
+
+    /**
+     * @param synchang whether initial padding bytes should be added to COBOL
+     * structures to accommodate PLI potential structure offsetting from
+     * doubleword boundaries
+     */
+    public void setSynchang(final boolean synchang) {
+        _synchang = synchang;
     }
 
     /**

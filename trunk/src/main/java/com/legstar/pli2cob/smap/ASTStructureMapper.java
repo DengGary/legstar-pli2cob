@@ -19,6 +19,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.legstar.pli2cob.PLIStructureLexer;
 import com.legstar.pli2cob.PLIStructureParser;
+import com.legstar.pli2cob.Pli2CobContext;
 import com.legstar.pli2cob.PLIStructureParser.script_return;
 import com.legstar.pli2cob.model.PLIDataItem;
 
@@ -26,7 +27,10 @@ import com.legstar.pli2cob.model.PLIDataItem;
  * This class contains the logic described in PLI Language Reference for
  * structure mapping.
  * <p/>
- * Its role is to insert padding characters where needed in a structure in order
+ * It will analyze structures mapping and detect where padding bytes might
+ * be needed.
+ * <p/>
+ * If requested, it sill insert padding characters where needed in a structure in order
  * for the converted COBOL structure to map exactly the same data items in memory
  * as the original PLI structure.
  * <p/>
@@ -35,8 +39,25 @@ import com.legstar.pli2cob.model.PLIDataItem;
  */
 public class ASTStructureMapper {
 
+    /** Execution parameters for the PLI to COBOL utility. */
+    private Pli2CobContext _context;
+
     /** Logger. */
     private final Log _log = LogFactory.getLog(getClass());
+
+    /**
+     * Default constructor.
+     */
+    public ASTStructureMapper() {
+        this(new Pli2CobContext());
+    }
+
+    /**
+     * @param context execution parameters for the PLI to COBOL utility
+     */
+    public ASTStructureMapper(final Pli2CobContext context) {
+        _context = context;
+    }
 
     /**
      * Takes a normalized (hierarchical) AST produced by {@link ASTNormalizer} and inserts
@@ -64,7 +85,7 @@ public class ASTStructureMapper {
         }
         return ast;
     }
-    
+
     /**
      * Same as previous but assumes the root node is a data item not a nil.
      * <p/>
@@ -91,9 +112,15 @@ public class ASTStructureMapper {
                 adaptor, ast, null, deepestStructure.getLogicalLevel());
 
         Map < Object, Integer> paddingNodes = new LinkedHashMap < Object, Integer>();
-        mapStructures(adaptor, minorStructures, paddingNodes);
+        StructureMappingUnit mappingUnit = mapStructures(
+                adaptor, minorStructures, paddingNodes);
 
-        padAST(adaptor, paddingNodes);
+        if (getContext().isSyncpad()) {
+            addPaddingNodes(adaptor, paddingNodes);
+        }
+        if (getContext().isSynchang()) {
+            addHangNode(adaptor, ast, mappingUnit.getOffset());
+        }
         return ast;
     }
 
@@ -298,36 +325,70 @@ public class ASTStructureMapper {
         /* Rename the mapping  unit after the structure rather than concatenation of inner items names*/
         return new StructureMappingUnit(minorStructure.getDataItem().getName(), structureMappingUnit);
     }
-    
+
     /**
      * Padding nodes are inserted in the Abstract Syntax Tree.
      * <p/>
      * The paddingNodes map contain nodes which serve as insertion guides. The new padding
      * nodes need to be inserted right before such insertion nodes.
      * <p/>
-     * The Tree setChild(int, node) method replaces the node at the specified index rather than
-     * inserting it. Therefore we need to re-insert the insertion node into the tree. 
+     * Starting at the padding index, all children are shifted one position to make room
+     * for the new padding node. 
      * @param adaptor the tree navigator helper
      * @param paddingNodes the insertion nodes associated with padding amount
      * @throws StructureMappingException if padding nodes cannot be created
      */
-    @SuppressWarnings("unchecked")
-    public void padAST(
+    public void addPaddingNodes(
             final TreeAdaptor adaptor,
             final Map < Object, Integer> paddingNodes) throws StructureMappingException {
         for (Object insertionNode : paddingNodes.keySet()) {
-            PLIDataItem insertionItem = new PLIDataItem(insertionNode, null);
-            Object paddingNode = createPaddingNode(adaptor, insertionItem.getLevel(), paddingNodes.get(insertionNode));
-            Object parentNode = adaptor.getParent(insertionNode);
-            int paddingIndex = adaptor.getChildIndex(insertionNode);
-            /* Starting at the padding index, all children are shifted one position to make room
-             * for the new padding node.*/
-            CommonTree tree = (CommonTree) parentNode;
-            tree.getChildren().add(paddingIndex, paddingNode);
-            tree.freshenParentAndChildIndexes();
+            addPaddingNode(adaptor, insertionNode, paddingNodes.get(insertionNode));
         }
     }
     
+    /**
+     * Add an initial filler to map the PL/I hang which is a number of bytes
+     * that PL/I offsets before the start of the actual data in a structure.
+     * <p/>
+     * Hang node is added before the first child node of the structure.
+     * @param adaptor the tree navigator helper
+     * @param ast a non nil abstract syntax tree node representing the structure
+     * @param offset the offset amount, i.e. the hang
+     * @throws StructureMappingException if adding hang node fails
+     */
+    public void addHangNode(
+            final TreeAdaptor adaptor,
+            final CommonTree ast,
+            final int offset) throws StructureMappingException {
+        if (offset > 0) {
+            Object insertionNode = ast.getFirstChildWithType(PLIStructureParser.DATA_ITEM);
+            if (insertionNode != null) {
+                addPaddingNode(adaptor, insertionNode, offset);
+            }
+        }
+    }
+    
+    /**
+     * Adds a new padding node right before an insertion node.
+     * @param adaptor the tree navigator helper
+     * @param insertionNode the node before which the padding node must be added
+     * @param padding the padding amount
+     * @throws StructureMappingException if adding padding node fails
+     */
+    @SuppressWarnings("unchecked")
+    private void addPaddingNode(
+            final TreeAdaptor adaptor,
+            final Object insertionNode,
+            final int padding) throws StructureMappingException {
+        PLIDataItem insertionItem = new PLIDataItem(insertionNode, null);
+        Object paddingNode = createPaddingNode(adaptor, insertionItem.getLevel(), padding);
+        Object parentNode = adaptor.getParent(insertionNode);
+        int paddingIndex = adaptor.getChildIndex(insertionNode);
+        CommonTree tree = (CommonTree) parentNode;
+        tree.getChildren().add(paddingIndex, paddingNode);
+        tree.freshenParentAndChildIndexes();
+    }
+
     /**
      * Create an Abstract Syntax Tree node corresponding to padding characters.
      * @param adaptor the tree navigator helper
@@ -336,11 +397,11 @@ public class ASTStructureMapper {
      * @return a node ready to be inserted in the AST
      * @throws StructureMappingException if node cannot be created
      */
-    public Object createPaddingNode(
+    private Object createPaddingNode(
             final TreeAdaptor adaptor,
             final int physicalLevel,
             final int padding) throws StructureMappingException {
-        
+
         try {
             String source = String.format("dcl %1$d * char(%2$d)", physicalLevel, padding);
             PLIStructureLexer lexer = new PLIStructureLexer(
@@ -355,7 +416,7 @@ public class ASTStructureMapper {
             throw new StructureMappingException(e);
         }
     }
-    
+
 
     /**
      * Elementary data items are mappable but minor structures are not. For minor structures,
@@ -374,6 +435,13 @@ public class ASTStructureMapper {
         } else {
             return dataItem;
         }
+    }
+
+    /**
+     * @return the execution parameters for the PLI to COBOL utility
+     */
+    public Pli2CobContext getContext() {
+        return _context;
     }
 
 
