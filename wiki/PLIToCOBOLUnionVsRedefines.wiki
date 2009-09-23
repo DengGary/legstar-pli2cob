@@ -13,7 +13,7 @@ This study is based on Enterprise COBOL for z/OS 3.3.0 and Enterprise PL/I for z
 
 == UNIONS are named ==
 
-A PL/I UNION has a name (or an asterisk). COBOL does not identify the union per se. In COBOL, there is a structure or an elementary data type that is redefined by other structures or elementary data types.
+A PL/I UNION has a name (or an asterisk). COBOL does not identify the union per se. In COBOL, there is a structure or an elementary data type that is redefined by other structures or elementary data types (redefining items).
 
 The loss of information can be avoided by using a parent COBOL structure name. For instance:
 
@@ -32,7 +32,7 @@ might translate to:
 
 == Neither the redefined data item nor any of its subordinate entries can contain a VALUE clause. ==
 
-Actually Enterprise COBOL for z/OS 3.3.0 treats a VALUE as a comment. No errors or warnings are generated.
+Actually Enterprise COBOL for z/OS 3.3.0 treats a VALUE as a comment in such a case. No errors or warnings are generated.
 
 Therefore we can ignore this restriction.
 
@@ -87,7 +87,7 @@ A naive translation like so:
 }}}
 yields this compilation error: IGYDS1170-S   A "REDEFINES" clause object "D" was a variable-length item.
 
-There does not seem to be a way around this restriction so this is a case where there is no COBOL equivalent.
+There does not seem to be a way around this restriction so this is a case where there is no COBOL equivalent to the PL/I structure.
 
 == If the redefined data item has level-number other than 01, its size must be greater than or equal to the size of the redefining data item ==
 
@@ -115,10 +115,10 @@ Knowing that PL/I compiler will allocate the storage required by the largest mem
                03 FILLER PIC X(1).   
            02 c REDEFINES b PIC X(2).
 }}}
-Unfortunately this is not close enough to the PL/I structure. member b was an elementary data item of size 1. That characteristic has been lost.
+Unfortunately this is not close enough to the PL/I structure. member b was an elementary data item of size 1. These attributes have been lost, b is now a structure of size 2.
 
 = Conclusion =
 
 Not all PL/I unions can be mapped to COBOL REDEFINES.
 
-The PL/I to COBOL structure converter should issue a warning in these situations. We should still generate COBOL code even if it does not compile knowing that more recent compilers, such as 3.4.0, might be more permissive and if not, then there is not a whole lot we can do.
+The PL/I to COBOL structure converter should issue a warning in these situations. We should still generate COBOL code, even if it does not compile, knowing that more recent compilers, such as 3.4.0, might be more permissive and if not, then there is not a whole lot we can do.
