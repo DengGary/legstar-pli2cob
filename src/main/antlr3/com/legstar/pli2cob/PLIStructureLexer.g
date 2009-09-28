@@ -11,6 +11,7 @@ lexer grammar PLIStructureLexer;
  *------------------------------------------------------------------*/
 DECLARE_KEYWORD: 'DECLARE' | 'declare' | 'Declare' | 'DCL' | 'dcl' | 'Dcl';
 REAL_KEYWORD: 'REAL' | 'real' | 'Real';
+COMPLEX_KEYWORD: 'COMPLEX' | 'complex' | 'Complex' | 'CPLX' | 'cplx' | 'Cplx';
 FIXED_KEYWORD: 'FIXED' | 'fixed' | 'Fixed';
 FLOAT_KEYWORD: 'FLOAT' | 'float' | 'Float';
 PRECISION_KEYWORD: 'PRECISION' | 'precision' | 'Precision' | 'PREC' | 'prec' | 'Prec';

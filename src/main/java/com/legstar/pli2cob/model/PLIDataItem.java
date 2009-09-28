@@ -334,17 +334,17 @@ public class PLIDataItem implements IMappable {
      * @param astItem the data item abstract syntax subtree
      */
     private void setStringAttributes(final TreeAdaptor adaptor, final Object astItem) {
-        String string = (String) ASTUtils.getAttributeValue(
-                adaptor, astItem, PLIStructureParser.STRING, null);
-        String length = (String) ASTUtils.getAttributeValue(
-                adaptor, astItem, PLIStructureParser.LENGTH, null);
-        String varying = (String) ASTUtils.getAttributeValue(
-                adaptor, astItem, PLIStructureParser.VARYING, null);
-        if (string == null && length == null && varying == null) {
+        Object stringNode = ASTUtils.getAttribute(adaptor, astItem, PLIStructureParser.STRING);
+        if (stringNode == null) {
             _isString = false;
         } else {
+            String string = adaptor.getText(adaptor.getChild(stringNode, 0));
+            String length = (String) ASTUtils.getAttributeValue(
+                    adaptor, stringNode, PLIStructureParser.LENGTH, null);
+            String varying = (String) ASTUtils.getAttributeValue(
+                    adaptor, stringNode, PLIStructureParser.VARYING, null);
             _isString = true;
-            _length = (length == null) ? 0 : Integer.parseInt(length);
+            _length = (length == null) ? 1 : Integer.parseInt(length);
             _stringType = (string == null) ? StringType.CHARACTER : StringType.valueOf(string);
             _varyingType = (varying == null) ? VaryingType.NONVARYING : VaryingType.valueOf(varying);
             
@@ -428,33 +428,69 @@ public class PLIDataItem implements IMappable {
      * @param astItem the data item abstract syntax subtree
      */
     private void setNumericAttributes(final TreeAdaptor adaptor, final Object astItem) {
-        String scale = (String) ASTUtils.getAttributeValue(
-                adaptor, astItem, PLIStructureParser.SCALE, null);
-        String base = (String) ASTUtils.getAttributeValue(
-                adaptor, astItem, PLIStructureParser.BASE, null);
-        String precision = (String) ASTUtils.getAttributeValue(
-                adaptor, astItem, PLIStructureParser.PRECISION, null);
-        String signed = (String) ASTUtils.getAttributeValue(
-                adaptor, astItem, PLIStructureParser.SIGNED, null);
-        if (scale == null && base == null && precision == null && signed == null) {
+        Object arithmeticNode = ASTUtils.getAttribute(adaptor, astItem, PLIStructureParser.ARITHMETIC);
+        if (arithmeticNode == null) {
             _isNumeric = false;
         } else {
             _isNumeric = true;
-            _scale = (scale == null) ? Scale.FLOAT : Scale.valueOf(scale);
-            _base = (base == null) ? Base.DECIMAL : Base.valueOf(base);
-            if (precision == null) {
+             _scale = getScale(adaptor, arithmeticNode);
+            _base = getBase(adaptor, arithmeticNode);
+            Object precisionNode = ASTUtils.getAttribute(
+                    adaptor, arithmeticNode, PLIStructureParser.PRECISION);
+            if (precisionNode == null) {
                 _precision = 5;
                 _scalingFactor = 0;
             } else {
-                _precision = Integer.parseInt(precision);
-                Object precisionTree = ASTUtils.getAttribute(adaptor, astItem, PLIStructureParser.PRECISION);
+                _precision = Integer.parseInt(adaptor.getText(adaptor.getChild(precisionNode, 0)));
                 String scalingFactor = (String) ASTUtils.getAttributeValue(
-                        adaptor, precisionTree, PLIStructureParser.SCALING_FACTOR, null);
+                        adaptor, precisionNode, PLIStructureParser.SCALING_FACTOR, null);
                 _scalingFactor = (scalingFactor == null) ? 0 : Integer.parseInt(scalingFactor);
             }
-            _isSigned = (signed == null) ? true : (signed.equals("SIGNED"));
+            _isSigned = getSign(adaptor, arithmeticNode);
             _length = calcNumericLength();
         }
+    }
+    
+    /**
+     * Get the scale. Surprisingly FLOAT is the default.
+     * @param  adaptor the tree navigator
+     * @param arithmeticNode the arithmetic node
+     * @return the arithmetic scale
+     */
+    private Scale getScale(final TreeAdaptor adaptor, final Object arithmeticNode) {
+        if (null != ASTUtils.getAttribute(adaptor, arithmeticNode, PLIStructureParser.FIXED)) {
+            return Scale.FIXED;
+        }
+        return Scale.FLOAT;
+    }
+
+    /**
+     * Get the base. Surprisingly DECIMAL is the default.
+     * @param  adaptor the tree navigator
+     * @param arithmeticNode the arithmetic node
+     * @return the arithmetic base
+     */
+    private Base getBase(final TreeAdaptor adaptor, final Object arithmeticNode) {
+        if (null != ASTUtils.getAttribute(adaptor, arithmeticNode, PLIStructureParser.BINARY)) {
+            return Base.BINARY;
+        }
+        return Base.DECIMAL;
+    }
+    
+    /**
+     * Get the sign. By default all numerics are signed.
+     * @param  adaptor the tree navigator
+     * @param arithmeticNode the arithmetic node
+     * @return true if the arithmetic is signed
+     */
+    private boolean getSign(final TreeAdaptor adaptor, final Object arithmeticNode) {
+        if (null != ASTUtils.getAttribute(adaptor, arithmeticNode, PLIStructureParser.SIGNED)) {
+            return true;
+        }
+        if (null != ASTUtils.getAttribute(adaptor, arithmeticNode, PLIStructureParser.UNSIGNED)) {
+            return false;
+        }
+        return true;
     }
 
     /**

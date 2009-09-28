@@ -4,6 +4,9 @@ import org.antlr.runtime.tree.CommonTree;
 
 /**
  * Test PLIStructureParser class.
+ * <p/>
+ * Here we are concerned with checking the Abstract Syntax Tree built by the parser from
+ * PL/I fragments.
  *
  */
 public class PLIStructureParserTest extends AbstractTester {
@@ -31,12 +34,11 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n1 -> n2 // \"LEVEL\" -> \"1\""
                 + "  n0 -> n3 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n3 -> n4 // \"NAME\" -> \"intf_sh\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n5 -> n6 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n7 -> n8 // \"BASE\" -> \"BINARY\""
-                + "  n0 -> n9 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n9 -> n10 // \"PRECISION\" -> \"15\"");
+                + "  n0 -> n5 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n5 -> n6 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n5 -> n7 // \"ARITHMETIC\" -> \"BINARY\""
+                + "  n5 -> n8 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n8 -> n9 // \"PRECISION\" -> \"15\"");
 
     }
 
@@ -51,12 +53,11 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n1 -> n2 // \"LEVEL\" -> \"1\""
                 + "  n0 -> n3 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n3 -> n4 // \"NAME\" -> \"intf_sh\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n5 -> n6 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n7 -> n8 // \"BASE\" -> \"BINARY\""
-                + "  n0 -> n9 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n9 -> n10 // \"PRECISION\" -> \"15\""
+                + "  n0 -> n5 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n5 -> n6 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n5 -> n7 // \"ARITHMETIC\" -> \"BINARY\""
+                + "  n5 -> n8 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n8 -> n9 // \"PRECISION\" -> \"15\""
         );
 
     }
@@ -72,14 +73,13 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n1 -> n2 // \"LEVEL\" -> \"1\""
                 + "  n0 -> n3 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n3 -> n4 // \"NAME\" -> \"intf_sh\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n5 -> n6 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n7 -> n8 // \"BASE\" -> \"BINARY\""
-                + "  n0 -> n9 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n9 -> n10 // \"PRECISION\" -> \"15\""
-                + "  n9 -> n11 // \"PRECISION\" -> \"SCALING_FACTOR\""
-                + "  n11 -> n12 // \"SCALING_FACTOR\" -> \"2\""
+                + "  n0 -> n5 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n5 -> n6 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n5 -> n7 // \"ARITHMETIC\" -> \"BINARY\""
+                + "  n5 -> n8 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n8 -> n9 // \"PRECISION\" -> \"15\""
+                + "  n8 -> n10 // \"PRECISION\" -> \"SCALING_FACTOR\""
+                + "  n10 -> n11 // \"SCALING_FACTOR\" -> \"2\""
         );
 
     }
@@ -95,18 +95,56 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n1 -> n2 // \"LEVEL\" -> \"1\""
                 + "  n0 -> n3 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n3 -> n4 // \"NAME\" -> \"intf_sh\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n5 -> n6 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"PRECISION\""
+                + "  n0 -> n5 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n5 -> n6 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n5 -> n7 // \"ARITHMETIC\" -> \"PRECISION\""
                 + "  n7 -> n8 // \"PRECISION\" -> \"15\""
                 + "  n7 -> n9 // \"PRECISION\" -> \"SCALING_FACTOR\""
                 + "  n9 -> n10 // \"SCALING_FACTOR\" -> \"2\""
-                + "  n0 -> n11 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n11 -> n12 // \"BASE\" -> \"BINARY\""
+                + "  n5 -> n11 // \"ARITHMETIC\" -> \"BINARY\""
         );
 
     }
 
+    /**
+     * Test inversion of BINARY AND SIGNED keywords.
+     */
+    public void testInvertedBinary2() {
+        parseCheck(
+                "dcl 1  intf_sh signed bin(15);",
+
+                "  n0 -> n1 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n1 -> n2 // \"LEVEL\" -> \"1\""
+                + "  n0 -> n3 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n3 -> n4 // \"NAME\" -> \"intf_sh\""
+                + "  n0 -> n5 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n5 -> n6 // \"ARITHMETIC\" -> \"SIGNED\""
+                + "  n5 -> n7 // \"ARITHMETIC\" -> \"BINARY\""
+                + "  n5 -> n8 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n8 -> n9 // \"PRECISION\" -> \"15\""
+        );
+
+    }
+
+    /**
+     * Test inversion of BINARY AND PRECISION keywords.
+     */
+    public void testInvertedBinary3() {
+        parseCheck(
+                "dcl 1  intf_sh precision(15) signed bin;",
+
+                "  n0 -> n1 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n1 -> n2 // \"LEVEL\" -> \"1\""
+                + "  n0 -> n3 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n3 -> n4 // \"NAME\" -> \"intf_sh\""
+                + "  n0 -> n5 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n5 -> n6 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n6 -> n7 // \"PRECISION\" -> \"15\""
+                + "  n5 -> n8 // \"ARITHMETIC\" -> \"SIGNED\""
+                + "  n5 -> n9 // \"ARITHMETIC\" -> \"BINARY\""
+        );
+
+    }
     /**
      * Test a signed arithmetic.
      */
@@ -118,16 +156,14 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n1 -> n2 // \"LEVEL\" -> \"1\""
                 + "  n0 -> n3 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n3 -> n4 // \"NAME\" -> \"intf_sh\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n5 -> n6 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n7 -> n8 // \"BASE\" -> \"BINARY\""
-                + "  n0 -> n9 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n9 -> n10 // \"PRECISION\" -> \"15\""
-                + "  n9 -> n11 // \"PRECISION\" -> \"SCALING_FACTOR\""
-                + "  n11 -> n12 // \"SCALING_FACTOR\" -> \"2\""
-                + "  n0 -> n13 // \"DATA_ITEM\" -> \"SIGNED\""
-                + "  n13 -> n14 // \"SIGNED\" -> \"signed\""
+                + "  n0 -> n5 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n5 -> n6 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n5 -> n7 // \"ARITHMETIC\" -> \"BINARY\""
+                + "  n5 -> n8 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n8 -> n9 // \"PRECISION\" -> \"15\""
+                + "  n8 -> n10 // \"PRECISION\" -> \"SCALING_FACTOR\""
+                + "  n10 -> n11 // \"SCALING_FACTOR\" -> \"2\""
+                + "  n5 -> n12 // \"ARITHMETIC\" -> \"SIGNED\""
         );
 
     }
@@ -143,16 +179,14 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n1 -> n2 // \"LEVEL\" -> \"1\""
                 + "  n0 -> n3 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n3 -> n4 // \"NAME\" -> \"intf_sh\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n5 -> n6 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n7 -> n8 // \"BASE\" -> \"BINARY\""
-                + "  n0 -> n9 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n9 -> n10 // \"PRECISION\" -> \"15\""
-                + "  n9 -> n11 // \"PRECISION\" -> \"SCALING_FACTOR\""
-                + "  n11 -> n12 // \"SCALING_FACTOR\" -> \"2\""
-                + "  n0 -> n13 // \"DATA_ITEM\" -> \"SIGNED\""
-                + "  n13 -> n14 // \"SIGNED\" -> \"unsigned\""
+                + "  n0 -> n5 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n5 -> n6 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n5 -> n7 // \"ARITHMETIC\" -> \"BINARY\""
+                + "  n5 -> n8 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n8 -> n9 // \"PRECISION\" -> \"15\""
+                + "  n8 -> n10 // \"PRECISION\" -> \"SCALING_FACTOR\""
+                + "  n10 -> n11 // \"SCALING_FACTOR\" -> \"2\""
+                + "  n5 -> n12 // \"ARITHMETIC\" -> \"UNSIGNED\""
         );
 
     }
@@ -166,14 +200,13 @@ public class PLIStructureParserTest extends AbstractTester {
 
                 "  n0 -> n1 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n1 -> n2 // \"NAME\" -> \"decf_sh\""
-                + "  n0 -> n3 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n3 -> n4 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n5 -> n6 // \"BASE\" -> \"DECIMAL\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n7 -> n8 // \"PRECISION\" -> \"5\""
-                + "  n7 -> n9 // \"PRECISION\" -> \"SCALING_FACTOR\""
-                + "  n9 -> n10 // \"SCALING_FACTOR\" -> \"4\""
+                + "  n0 -> n3 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n3 -> n4 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n3 -> n5 // \"ARITHMETIC\" -> \"DECIMAL\""
+                + "  n3 -> n6 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n6 -> n7 // \"PRECISION\" -> \"5\""
+                + "  n6 -> n8 // \"PRECISION\" -> \"SCALING_FACTOR\""
+                + "  n8 -> n9 // \"SCALING_FACTOR\" -> \"4\""
         );
 
     }
@@ -187,14 +220,13 @@ public class PLIStructureParserTest extends AbstractTester {
 
                 "  n0 -> n1 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n1 -> n2 // \"NAME\" -> \"decf_sh\""
-                + "  n0 -> n3 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n3 -> n4 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"PRECISION\""
+                + "  n0 -> n3 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n3 -> n4 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n3 -> n5 // \"ARITHMETIC\" -> \"PRECISION\""
                 + "  n5 -> n6 // \"PRECISION\" -> \"5\""
                 + "  n5 -> n7 // \"PRECISION\" -> \"SCALING_FACTOR\""
                 + "  n7 -> n8 // \"SCALING_FACTOR\" -> \"4\""
-                + "  n0 -> n9 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n9 -> n10 // \"BASE\" -> \"DECIMAL\""
+                + "  n3 -> n9 // \"ARITHMETIC\" -> \"DECIMAL\""
         );
 
     }
@@ -208,9 +240,9 @@ public class PLIStructureParserTest extends AbstractTester {
 
                 "  n0 -> n1 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n1 -> n2 // \"NAME\" -> \"decf_sh\""
-                + "  n0 -> n3 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n3 -> n4 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"PRECISION\""
+                + "  n0 -> n3 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n3 -> n4 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n3 -> n5 // \"ARITHMETIC\" -> \"PRECISION\""
                 + "  n5 -> n6 // \"PRECISION\" -> \"5\""
                 + "  n5 -> n7 // \"PRECISION\" -> \"SCALING_FACTOR\""
                 + "  n7 -> n8 // \"SCALING_FACTOR\" -> \"4\""
@@ -227,10 +259,9 @@ public class PLIStructureParserTest extends AbstractTester {
 
                 "  n0 -> n1 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n1 -> n2 // \"NAME\" -> \"float_sh\""
-                + "  n0 -> n3 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n3 -> n4 // \"SCALE\" -> \"FLOAT\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n5 -> n6 // \"BASE\" -> \"BINARY\""
+                + "  n0 -> n3 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n3 -> n4 // \"ARITHMETIC\" -> \"FLOAT\""
+                + "  n3 -> n5 // \"ARITHMETIC\" -> \"BINARY\""
         );
 
     }
@@ -244,12 +275,10 @@ public class PLIStructureParserTest extends AbstractTester {
 
                 "  n0 -> n1 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n1 -> n2 // \"NAME\" -> \"float_sh\""
-                + "  n0 -> n3 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n3 -> n4 // \"SCALE\" -> \"FLOAT\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n5 -> n6 // \"BASE\" -> \"BINARY\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"MODE\""
-                + "  n7 -> n8 // \"MODE\" -> \"REAL\""
+                + "  n0 -> n3 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n3 -> n4 // \"ARITHMETIC\" -> \"FLOAT\""
+                + "  n3 -> n5 // \"ARITHMETIC\" -> \"BINARY\""
+                + "  n3 -> n6 // \"ARITHMETIC\" -> \"REAL\""
         );
 
     }
@@ -263,16 +292,14 @@ public class PLIStructureParserTest extends AbstractTester {
 
                 "  n0 -> n1 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n1 -> n2 // \"NAME\" -> \"D\""
-                + "  n0 -> n3 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n3 -> n4 // \"BASE\" -> \"DECIMAL\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n5 -> n6 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"MODE\""
-                + "  n7 -> n8 // \"MODE\" -> \"REAL\""
-                + "  n0 -> n9 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n9 -> n10 // \"PRECISION\" -> \"3\""
-                + "  n9 -> n11 // \"PRECISION\" -> \"SCALING_FACTOR\""
-                + "  n11 -> n12 // \"SCALING_FACTOR\" -> \"2\""
+                + "  n0 -> n3 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n3 -> n4 // \"ARITHMETIC\" -> \"DECIMAL\""
+                + "  n3 -> n5 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n3 -> n6 // \"ARITHMETIC\" -> \"REAL\""
+                + "  n3 -> n7 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n7 -> n8 // \"PRECISION\" -> \"3\""
+                + "  n7 -> n9 // \"PRECISION\" -> \"SCALING_FACTOR\""
+                + "  n9 -> n10 // \"SCALING_FACTOR\" -> \"2\""
         );
 
     }
@@ -288,7 +315,7 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n1 -> n2 // \"NAME\" -> \"User\""
                 + "  n0 -> n3 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n3 -> n4 // \"STRING\" -> \"CHARACTER\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n3 -> n5 // \"STRING\" -> \"LENGTH\""
                 + "  n5 -> n6 // \"LENGTH\" -> \"15\""
         );
 
@@ -305,7 +332,7 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n1 -> n2 // \"NAME\" -> \"Symptoms\""
                 + "  n0 -> n3 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n3 -> n4 // \"STRING\" -> \"BIT\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n3 -> n5 // \"STRING\" -> \"LENGTH\""
                 + "  n5 -> n6 // \"LENGTH\" -> \"64\""
         );
 
@@ -322,7 +349,7 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n1 -> n2 // \"NAME\" -> \"User\""
                 + "  n0 -> n3 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n3 -> n4 // \"STRING\" -> \"CHARACTER\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n3 -> n5 // \"STRING\" -> \"LENGTH\""
                 + "  n5 -> n6 // \"LENGTH\" -> \"15\""
                 + "  n5 -> n7 // \"LENGTH\" -> \"REFER\""
                 + "  n7 -> n8 // \"REFER\" -> \"N\""
@@ -341,9 +368,9 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n1 -> n2 // \"NAME\" -> \"User\""
                 + "  n0 -> n3 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n3 -> n4 // \"STRING\" -> \"CHARACTER\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n3 -> n5 // \"STRING\" -> \"LENGTH\""
                 + "  n5 -> n6 // \"LENGTH\" -> \"15\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"VARYING\""
+                + "  n3 -> n7 // \"STRING\" -> \"VARYING\""
                 + "  n7 -> n8 // \"VARYING\" -> \"VARYINGZ\""
         );
 
@@ -373,16 +400,15 @@ public class PLIStructureParserTest extends AbstractTester {
 
                 "  n0 -> n1 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n1 -> n2 // \"NAME\" -> \"List\""
-                + "  n0 -> n3 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n3 -> n4 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n5 -> n6 // \"BASE\" -> \"DECIMAL\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n7 -> n8 // \"PRECISION\" -> \"3\""
-                + "  n0 -> n9 // \"DATA_ITEM\" -> \"DIMENSIONS\""
-                + "  n9 -> n10 // \"DIMENSIONS\" -> \"DIMENSION\""
-                + "  n10 -> n11 // \"DIMENSION\" -> \"HBOUND\""
-                + "  n11 -> n12 // \"HBOUND\" -> \"8\""
+                + "  n0 -> n3 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n3 -> n4 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n3 -> n5 // \"ARITHMETIC\" -> \"DECIMAL\""
+                + "  n3 -> n6 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n6 -> n7 // \"PRECISION\" -> \"3\""
+                + "  n0 -> n8 // \"DATA_ITEM\" -> \"DIMENSIONS\""
+                + "  n8 -> n9 // \"DIMENSIONS\" -> \"DIMENSION\""
+                + "  n9 -> n10 // \"DIMENSION\" -> \"HBOUND\""
+                + "  n10 -> n11 // \"HBOUND\" -> \"8\""
         );
 
     }
@@ -403,12 +429,11 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n3 -> n7 // \"DIMENSIONS\" -> \"DIMENSION\""
                 + "  n7 -> n8 // \"DIMENSION\" -> \"HBOUND\""
                 + "  n8 -> n9 // \"HBOUND\" -> \"2\""
-                + "  n0 -> n10 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n10 -> n11 // \"SCALE\" -> \"FIXED\""
-                + "  n0 -> n12 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n12 -> n13 // \"BASE\" -> \"DECIMAL\""
-                + "  n0 -> n14 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n14 -> n15 // \"PRECISION\" -> \"3\""
+                + "  n0 -> n10 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n10 -> n11 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n10 -> n12 // \"ARITHMETIC\" -> \"DECIMAL\""
+                + "  n10 -> n13 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n13 -> n14 // \"PRECISION\" -> \"3\""
         );
 
     }
@@ -486,7 +511,7 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n14 -> n15 // \"NAME\" -> \"Last\""
                 + "  n11 -> n16 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n16 -> n17 // \"STRING\" -> \"CHARACTER\""
-                + "  n11 -> n18 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n16 -> n18 // \"STRING\" -> \"LENGTH\""
                 + "  n18 -> n19 // \"LENGTH\" -> \"20\""
                 + "  n0 -> n20 // \"\" -> \"DATA_ITEM\""
                 + "  n20 -> n21 // \"DATA_ITEM\" -> \"LEVEL\""
@@ -495,7 +520,7 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n23 -> n24 // \"NAME\" -> \"First\""
                 + "  n20 -> n25 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n25 -> n26 // \"STRING\" -> \"CHARACTER\""
-                + "  n20 -> n27 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n25 -> n27 // \"STRING\" -> \"LENGTH\""
                 + "  n27 -> n28 // \"LENGTH\" -> \"15\""
                 + "  n0 -> n29 // \"\" -> \"DATA_ITEM\""
                 + "  n29 -> n30 // \"DATA_ITEM\" -> \"LEVEL\""
@@ -507,58 +532,54 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n35 -> n36 // \"LEVEL\" -> \"3\""
                 + "  n34 -> n37 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n37 -> n38 // \"NAME\" -> \"Regular\""
-                + "  n34 -> n39 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n39 -> n40 // \"SCALE\" -> \"FIXED\""
-                + "  n34 -> n41 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n41 -> n42 // \"BASE\" -> \"DECIMAL\""
-                + "  n34 -> n43 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n43 -> n44 // \"PRECISION\" -> \"5\""
-                + "  n43 -> n45 // \"PRECISION\" -> \"SCALING_FACTOR\""
-                + "  n45 -> n46 // \"SCALING_FACTOR\" -> \"2\""
-                + "  n0 -> n47 // \"\" -> \"DATA_ITEM\""
-                + "  n47 -> n48 // \"DATA_ITEM\" -> \"LEVEL\""
-                + "  n48 -> n49 // \"LEVEL\" -> \"3\""
-                + "  n47 -> n50 // \"DATA_ITEM\" -> \"NAME\""
-                + "  n50 -> n51 // \"NAME\" -> \"Overtime\""
-                + "  n47 -> n52 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n52 -> n53 // \"SCALE\" -> \"FIXED\""
-                + "  n47 -> n54 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n54 -> n55 // \"BASE\" -> \"DECIMAL\""
-                + "  n47 -> n56 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n56 -> n57 // \"PRECISION\" -> \"5\""
-                + "  n56 -> n58 // \"PRECISION\" -> \"SCALING_FACTOR\""
-                + "  n58 -> n59 // \"SCALING_FACTOR\" -> \"2\""
-                + "  n0 -> n60 // \"\" -> \"DATA_ITEM\""
-                + "  n60 -> n61 // \"DATA_ITEM\" -> \"LEVEL\""
-                + "  n61 -> n62 // \"LEVEL\" -> \"2\""
-                + "  n60 -> n63 // \"DATA_ITEM\" -> \"NAME\""
-                + "  n63 -> n64 // \"NAME\" -> \"Rate\""
-                + "  n0 -> n65 // \"\" -> \"DATA_ITEM\""
-                + "  n65 -> n66 // \"DATA_ITEM\" -> \"LEVEL\""
-                + "  n66 -> n67 // \"LEVEL\" -> \"3\""
-                + "  n65 -> n68 // \"DATA_ITEM\" -> \"NAME\""
-                + "  n68 -> n69 // \"NAME\" -> \"Regular\""
-                + "  n65 -> n70 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n70 -> n71 // \"SCALE\" -> \"FIXED\""
-                + "  n65 -> n72 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n72 -> n73 // \"BASE\" -> \"DECIMAL\""
-                + "  n65 -> n74 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n74 -> n75 // \"PRECISION\" -> \"3\""
-                + "  n74 -> n76 // \"PRECISION\" -> \"SCALING_FACTOR\""
-                + "  n76 -> n77 // \"SCALING_FACTOR\" -> \"2\""
-                + "  n0 -> n78 // \"\" -> \"DATA_ITEM\""
-                + "  n78 -> n79 // \"DATA_ITEM\" -> \"LEVEL\""
-                + "  n79 -> n80 // \"LEVEL\" -> \"3\""
-                + "  n78 -> n81 // \"DATA_ITEM\" -> \"NAME\""
-                + "  n81 -> n82 // \"NAME\" -> \"Overtime\""
-                + "  n78 -> n83 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n83 -> n84 // \"SCALE\" -> \"FIXED\""
-                + "  n78 -> n85 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n85 -> n86 // \"BASE\" -> \"DECIMAL\""
-                + "  n78 -> n87 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n87 -> n88 // \"PRECISION\" -> \"3\""
-                + "  n87 -> n89 // \"PRECISION\" -> \"SCALING_FACTOR\""
-                + "  n89 -> n90 // \"SCALING_FACTOR\" -> \"2\""
+                + "  n34 -> n39 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n39 -> n40 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n39 -> n41 // \"ARITHMETIC\" -> \"DECIMAL\""
+                + "  n39 -> n42 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n42 -> n43 // \"PRECISION\" -> \"5\""
+                + "  n42 -> n44 // \"PRECISION\" -> \"SCALING_FACTOR\""
+                + "  n44 -> n45 // \"SCALING_FACTOR\" -> \"2\""
+                + "  n0 -> n46 // \"\" -> \"DATA_ITEM\""
+                + "  n46 -> n47 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n47 -> n48 // \"LEVEL\" -> \"3\""
+                + "  n46 -> n49 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n49 -> n50 // \"NAME\" -> \"Overtime\""
+                + "  n46 -> n51 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n51 -> n52 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n51 -> n53 // \"ARITHMETIC\" -> \"DECIMAL\""
+                + "  n51 -> n54 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n54 -> n55 // \"PRECISION\" -> \"5\""
+                + "  n54 -> n56 // \"PRECISION\" -> \"SCALING_FACTOR\""
+                + "  n56 -> n57 // \"SCALING_FACTOR\" -> \"2\""
+                + "  n0 -> n58 // \"\" -> \"DATA_ITEM\""
+                + "  n58 -> n59 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n59 -> n60 // \"LEVEL\" -> \"2\""
+                + "  n58 -> n61 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n61 -> n62 // \"NAME\" -> \"Rate\""
+                + "  n0 -> n63 // \"\" -> \"DATA_ITEM\""
+                + "  n63 -> n64 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n64 -> n65 // \"LEVEL\" -> \"3\""
+                + "  n63 -> n66 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n66 -> n67 // \"NAME\" -> \"Regular\""
+                + "  n63 -> n68 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n68 -> n69 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n68 -> n70 // \"ARITHMETIC\" -> \"DECIMAL\""
+                + "  n68 -> n71 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n71 -> n72 // \"PRECISION\" -> \"3\""
+                + "  n71 -> n73 // \"PRECISION\" -> \"SCALING_FACTOR\""
+                + "  n73 -> n74 // \"SCALING_FACTOR\" -> \"2\""
+                + "  n0 -> n75 // \"\" -> \"DATA_ITEM\""
+                + "  n75 -> n76 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n76 -> n77 // \"LEVEL\" -> \"3\""
+                + "  n75 -> n78 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n78 -> n79 // \"NAME\" -> \"Overtime\""
+                + "  n75 -> n80 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n80 -> n81 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n80 -> n82 // \"ARITHMETIC\" -> \"DECIMAL\""
+                + "  n80 -> n83 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n83 -> n84 // \"PRECISION\" -> \"3\""
+                + "  n83 -> n85 // \"PRECISION\" -> \"SCALING_FACTOR\""
+                + "  n85 -> n86 // \"SCALING_FACTOR\" -> \"2\""
         );
 
     }
@@ -587,7 +608,7 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n14 -> n15 // \"NAME\" -> \"Last\""
                 + "  n11 -> n16 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n16 -> n17 // \"STRING\" -> \"CHARACTER\""
-                + "  n11 -> n18 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n16 -> n18 // \"STRING\" -> \"LENGTH\""
                 + "  n18 -> n19 // \"LENGTH\" -> \"20\""
         );
 
@@ -612,7 +633,7 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n9 -> n10 // \"NAME\" -> \"Name\""
                 + "  n6 -> n11 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n11 -> n12 // \"STRING\" -> \"CHARACTER\""
-                + "  n6 -> n13 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n11 -> n13 // \"STRING\" -> \"LENGTH\""
                 + "  n13 -> n14 // \"LENGTH\" -> \"15\""
                 + "  n0 -> n15 // \"\" -> \"DATA_ITEM\""
                 + "  n15 -> n16 // \"DATA_ITEM\" -> \"LEVEL\""
@@ -621,7 +642,7 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n18 -> n19 // \"NAME\" -> \"Last\""
                 + "  n15 -> n20 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n20 -> n21 // \"STRING\" -> \"CHARACTER\""
-                + "  n15 -> n22 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n20 -> n22 // \"STRING\" -> \"LENGTH\""
                 + "  n22 -> n23 // \"LENGTH\" -> \"20\""
         );
 
@@ -638,7 +659,7 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n1 -> n2 // \"NAME\" -> \"Astring\""
                 + "  n0 -> n3 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n3 -> n4 // \"STRING\" -> \"CHARACTER\""
-                + "  n0 -> n5 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n3 -> n5 // \"STRING\" -> \"LENGTH\""
                 + "  n5 -> n6 // \"LENGTH\" -> \"20\""
                 + "  n0 -> n7 // \"DATA_ITEM\" -> \"VALUE\""
                 + "  n7 -> n8 // \"VALUE\" -> \"'abcd'\""
