@@ -4,7 +4,7 @@ parser grammar PLIStructureParser;
  * -----------------
  * Not a validating parser
  * No support for: INTERNAL/EXTERNAL RESERVED/IMPORTED DEFAULT
- *                 DEFINE ALIAS DEFINE ORDINAL AREA COMPLEX ENTRY
+ *                 DEFINE ALIAS DEFINE ORDINAL AREA ENTRY
  *                 FILE FORMAT HANDLE LABEL OFFSET POINTER RETURNS
  *                 STRUCTURE UNION TASK TYPE
  * DIMENSION lower and upper bound only support constant expressions
@@ -26,17 +26,17 @@ tokens {
   DATA_ITEM;
   LEVEL;
   NAME;
-  MODE;
+  ARITHMETIC;
   REAL;
-  SCALE;
+  COMPLEX;
   FIXED;
   FLOAT;
-  BASE;
   DECIMAL;
   BINARY;
   PRECISION;
   SCALING_FACTOR;
   SIGNED;
+  UNSIGNED;
   STRING;
   BIT;
   CHARACTER;
@@ -77,10 +77,8 @@ script: declare* EOF!;
 declare: DECLARE_KEYWORD! data_item (COMMA! data_item)* terminator!;
 
 data_item:
-    level? data_item_name dimension_attribute item_attribute*
-    ->^(DATA_ITEM level? data_item_name dimension_attribute item_attribute*)
-    | level? data_item_name attribute*
-    ->^(DATA_ITEM level? data_item_name attribute*)
+    level? data_item_name implicit_dimension_attribute? elementary_data_item_attribute? misc_attribute*
+    ->^(DATA_ITEM level? data_item_name implicit_dimension_attribute? elementary_data_item_attribute? misc_attribute*)
     ;
 
 level:
@@ -92,6 +90,7 @@ data_item_name:
     | ASTERISK ->^(NAME FILLER)
     | DECLARE_KEYWORD ->^(NAME DECLARE_KEYWORD)
     | REAL_KEYWORD ->^(NAME REAL_KEYWORD)
+    | COMPLEX_KEYWORD ->^(NAME COMPLEX_KEYWORD)
     | FIXED_KEYWORD ->^(NAME FIXED_KEYWORD)
     | FLOAT_KEYWORD ->^(NAME FLOAT_KEYWORD)
     | PRECISION_KEYWORD ->^(NAME PRECISION_KEYWORD)
@@ -118,16 +117,14 @@ data_item_name:
     | CONTROLLED_KEYWORD ->^(NAME CONTROLLED_KEYWORD)
     ;
 
-attribute:
-    item_attribute
-    | explicit_dimension_attribute 
-    ;
-
-item_attribute:
+elementary_data_item_attribute:
     string_attribute
-    | varying_attribute
     | picture_attribute
     | arithmetic_attribute
+    ;
+
+misc_attribute:
+    dimension_attribute 
     | alignment_attribute
     | initial_attribute
     | storage_attribute
@@ -137,16 +134,20 @@ terminator: SEMICOLON | EOF;
 
 /*------------------------------------------------------------------
  * -- String attributes
+ * -- VARYING BIT/CHARACTER/GRAPHIC/WIDECHAR can appear in any order
 *------------------------------------------------------------------*/
 string_attribute:
-    string_keyword string_length_specification
+    string_keyword string_length_specification? varying_attribute?
+    ->^(STRING string_keyword string_length_specification? varying_attribute?)
+    | varying_attribute string_keyword string_length_specification?
+    ->^(STRING string_keyword string_length_specification? varying_attribute?)
     ; 
 
 string_keyword:
-    BIT_KEYWORD ->^(STRING BIT)
-    | CHARACTER_KEYWORD ->^(STRING CHARACTER)
-    | GRAPHIC_KEYWORD ->^(STRING GRAPHIC) 
-    | WIDECHAR_KEYWORD  ->^(STRING WIDECHAR)
+    BIT_KEYWORD ->^(BIT)
+    | CHARACTER_KEYWORD ->^(CHARACTER)
+    | GRAPHIC_KEYWORD ->^(GRAPHIC)
+    | WIDECHAR_KEYWORD ->^(WIDECHAR)
     ; 
 
 string_length_specification:
@@ -159,6 +160,12 @@ refer_specification:
     ->^(REFER DATA_ITEM_NAME)
     ;
     
+varying_attribute:
+    NONVARYING_KEYWORD -> ^(VARYING NONVARYING)
+    | VARYING_KEYWORD -> ^(VARYING VARYING)
+    | VARYINGZ_KEYWORD -> ^(VARYING VARYINGZ)
+    ;
+
 /*------------------------------------------------------------------
  * -- Picture attribute
 *------------------------------------------------------------------*/
@@ -171,35 +178,50 @@ picture_value:
     ;
 
 /*------------------------------------------------------------------
- * -- Varying attribute
-*------------------------------------------------------------------*/
-varying_attribute:
-    NONVARYING_KEYWORD -> ^(VARYING NONVARYING)
-    | VARYING_KEYWORD -> ^(VARYING VARYING)
-    | VARYINGZ_KEYWORD -> ^(VARYING VARYINGZ)
-    ;
-
-/*------------------------------------------------------------------
  * -- Arithmetic attributes
+ * -- FLOAT/FIXED BINARY/DECIMAL SIGNED/UNSIGNED REAL/COMPLEX
+ * -- and PRECISION can appear in any order
 *------------------------------------------------------------------*/
 arithmetic_attribute:
-    arithmetic_keyword precision_specification? sign_sequence?
-    ; 
-
+    arithmetic_keyword precision_specification? other_arithmetic_attribute*
+    ->^(ARITHMETIC arithmetic_keyword  precision_specification? other_arithmetic_attribute*)
+    | PRECISION_KEYWORD implicit_precision_specification other_arithmetic_attribute*
+    ->^(ARITHMETIC ^(implicit_precision_specification) other_arithmetic_attribute*)
+    ;
+ 
 arithmetic_keyword:
-    REAL_KEYWORD ->^(MODE REAL)
-    | FLOAT_KEYWORD ->^(SCALE FLOAT)
-    | FIXED_KEYWORD ->^(SCALE FIXED) 
-    | BINARY_KEYWORD  ->^(BASE BINARY)
-    | DECIMAL_KEYWORD ->^(BASE DECIMAL)
-    ; 
+    FLOAT_KEYWORD
+    ->^(FLOAT)
+    | FIXED_KEYWORD
+    ->^(FIXED)
+    | BINARY_KEYWORD
+    ->^(BINARY)
+    | DECIMAL_KEYWORD
+    ->^(DECIMAL)
+    | SIGNED_KEYWORD
+    ->^(SIGNED)
+    | UNSIGNED_KEYWORD
+    ->^(UNSIGNED)
+    | REAL_KEYWORD
+    ->^(REAL)
+    | COMPLEX_KEYWORD
+    ->^(COMPLEX)
+    ;
+
+other_arithmetic_attribute:
+    arithmetic_keyword precision_specification?
+    ;
 
 precision_specification:
-    PRECISION_KEYWORD?
+    PRECISION_KEYWORD? implicit_precision_specification
+    ->^(implicit_precision_specification)
+    ;
+
+implicit_precision_specification:
     LEFT_PAREN UNSIGNED_INTEGER scaling_factor? RIGHT_PAREN
     ->^(PRECISION UNSIGNED_INTEGER scaling_factor?)
     ;
-	
+
 scaling_factor:
     COMMA (v=UNSIGNED_INTEGER | v=SIGNED_INTEGER)
     ->^(SCALING_FACTOR $v)
@@ -213,11 +235,11 @@ sign_sequence:
 /*------------------------------------------------------------------
  * -- Dimension attribute
 *------------------------------------------------------------------*/
-explicit_dimension_attribute:
-    DIMENSION_KEYWORD! dimension_attribute
+dimension_attribute:
+    DIMENSION_KEYWORD! implicit_dimension_attribute
     ;
     
-dimension_attribute:
+implicit_dimension_attribute:
     LEFT_PAREN bound_attribute (COMMA bound_attribute)* RIGHT_PAREN
     ->^(DIMENSIONS bound_attribute+)
     ;

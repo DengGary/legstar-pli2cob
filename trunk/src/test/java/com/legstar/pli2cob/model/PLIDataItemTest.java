@@ -4,6 +4,7 @@ import org.antlr.runtime.tree.CommonTree;
 
 import com.legstar.pli2cob.AbstractTester;
 import com.legstar.pli2cob.model.PLIDataItem.AlignmentRequirement;
+import com.legstar.pli2cob.model.PLIDataItem.VaryingType;
 
 
 /**
@@ -186,6 +187,26 @@ public class PLIDataItemTest extends AbstractTester {
         assertEquals(6, dataItem.getLength());
     }
 
+    /**
+     * Test string varying.
+     */
+    public void testStringVarying() {
+        
+        PLIDataItem dataItem;
+        
+        dataItem = parseItem("declare User character (15) varying;");
+        assertEquals(VaryingType.VARYING, dataItem.getVaryingType());
+        
+        dataItem = parseItem("declare Zuser character (15) varyingz;");
+        assertEquals(VaryingType.VARYINGZ, dataItem.getVaryingType());
+        
+        dataItem = parseItem("dcl Z char(3) nonvarying init('abc');");
+        assertEquals(VaryingType.NONVARYING, dataItem.getVaryingType());
+        
+        dataItem = parseItem("declare User varying character (15);");
+        assertEquals(VaryingType.VARYING, dataItem.getVaryingType());
+        
+    }
     /**
      * A generic test helper that takes a source fragment and checks the result.
      * @param source the source fragment

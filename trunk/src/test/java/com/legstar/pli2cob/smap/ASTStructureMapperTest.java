@@ -389,8 +389,8 @@ public class ASTStructureMapperTest extends AbstractTester {
                 + " 2 D,"
                 + " 3 E char(1),"
                 + " 3 F fixed bin(31);",
-                
-        "  n0 -> n1 // \"\" -> \"DATA_ITEM\""
+
+                "  n0 -> n1 // \"\" -> \"DATA_ITEM\""
                 + "  n1 -> n2 // \"DATA_ITEM\" -> \"LEVEL\""
                 + "  n2 -> n3 // \"LEVEL\" -> \"1\""
                 + "  n1 -> n4 // \"DATA_ITEM\" -> \"NAME\""
@@ -402,55 +402,53 @@ public class ASTStructureMapperTest extends AbstractTester {
                 + "  n9 -> n10 // \"NAME\" -> \"B\""
                 + "  n6 -> n11 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n11 -> n12 // \"STRING\" -> \"CHARACTER\""
-                + "  n6 -> n13 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n11 -> n13 // \"STRING\" -> \"LENGTH\""
                 + "  n13 -> n14 // \"LENGTH\" -> \"1\""
                 + "  n1 -> n15 // \"DATA_ITEM\" -> \"DATA_ITEM\""
                 + "  n15 -> n16 // \"DATA_ITEM\" -> \"LEVEL\""
                 + "  n16 -> n17 // \"LEVEL\" -> \"2\""
                 + "  n15 -> n18 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n18 -> n19 // \"NAME\" -> \"C\""
-                + "  n15 -> n20 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n20 -> n21 // \"SCALE\" -> \"FIXED\""
-                + "  n15 -> n22 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n22 -> n23 // \"BASE\" -> \"BINARY\""
-                + "  n15 -> n24 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n24 -> n25 // \"PRECISION\" -> \"15\""
-                + "  n1 -> n26 // \"DATA_ITEM\" -> \"DATA_ITEM\""
-                + "  n26 -> n27 // \"DATA_ITEM\" -> \"LEVEL\""
-                + "  n27 -> n28 // \"LEVEL\" -> \"2\""
-                + "  n26 -> n29 // \"DATA_ITEM\" -> \"NAME\""
-                + "  n29 -> n30 // \"NAME\" -> \"FILLER\""
-                + "  n26 -> n31 // \"DATA_ITEM\" -> \"STRING\""
-                + "  n31 -> n32 // \"STRING\" -> \"CHARACTER\""
-                + "  n26 -> n33 // \"DATA_ITEM\" -> \"LENGTH\""
-                + "  n33 -> n34 // \"LENGTH\" -> \"1\""
-                + "  n1 -> n35 // \"DATA_ITEM\" -> \"DATA_ITEM\""
-                + "  n35 -> n36 // \"DATA_ITEM\" -> \"LEVEL\""
-                + "  n36 -> n37 // \"LEVEL\" -> \"2\""
-                + "  n35 -> n38 // \"DATA_ITEM\" -> \"NAME\""
-                + "  n38 -> n39 // \"NAME\" -> \"D\""
-                + "  n35 -> n40 // \"DATA_ITEM\" -> \"DATA_ITEM\""
-                + "  n40 -> n41 // \"DATA_ITEM\" -> \"LEVEL\""
-                + "  n41 -> n42 // \"LEVEL\" -> \"3\""
-                + "  n40 -> n43 // \"DATA_ITEM\" -> \"NAME\""
-                + "  n43 -> n44 // \"NAME\" -> \"E\""
-                + "  n40 -> n45 // \"DATA_ITEM\" -> \"STRING\""
-                + "  n45 -> n46 // \"STRING\" -> \"CHARACTER\""
-                + "  n40 -> n47 // \"DATA_ITEM\" -> \"LENGTH\""
-                + "  n47 -> n48 // \"LENGTH\" -> \"1\""
-                + "  n35 -> n49 // \"DATA_ITEM\" -> \"DATA_ITEM\""
-                + "  n49 -> n50 // \"DATA_ITEM\" -> \"LEVEL\""
-                + "  n50 -> n51 // \"LEVEL\" -> \"3\""
-                + "  n49 -> n52 // \"DATA_ITEM\" -> \"NAME\""
-                + "  n52 -> n53 // \"NAME\" -> \"F\""
-                + "  n49 -> n54 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n54 -> n55 // \"SCALE\" -> \"FIXED\""
-                + "  n49 -> n56 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n56 -> n57 // \"BASE\" -> \"BINARY\""
-                + "  n49 -> n58 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n58 -> n59 // \"PRECISION\" -> \"31\"",
-                
-        false);
+                + "  n15 -> n20 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n20 -> n21 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n20 -> n22 // \"ARITHMETIC\" -> \"BINARY\""
+                + "  n20 -> n23 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n23 -> n24 // \"PRECISION\" -> \"15\""
+                + "  n1 -> n25 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n25 -> n26 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n26 -> n27 // \"LEVEL\" -> \"2\""
+                + "  n25 -> n28 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n28 -> n29 // \"NAME\" -> \"FILLER\""
+                + "  n25 -> n30 // \"DATA_ITEM\" -> \"STRING\""
+                + "  n30 -> n31 // \"STRING\" -> \"CHARACTER\""
+                + "  n30 -> n32 // \"STRING\" -> \"LENGTH\""
+                + "  n32 -> n33 // \"LENGTH\" -> \"1\""
+                + "  n1 -> n34 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n34 -> n35 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n35 -> n36 // \"LEVEL\" -> \"2\""
+                + "  n34 -> n37 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n37 -> n38 // \"NAME\" -> \"D\""
+                + "  n34 -> n39 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n39 -> n40 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n40 -> n41 // \"LEVEL\" -> \"3\""
+                + "  n39 -> n42 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n42 -> n43 // \"NAME\" -> \"E\""
+                + "  n39 -> n44 // \"DATA_ITEM\" -> \"STRING\""
+                + "  n44 -> n45 // \"STRING\" -> \"CHARACTER\""
+                + "  n44 -> n46 // \"STRING\" -> \"LENGTH\""
+                + "  n46 -> n47 // \"LENGTH\" -> \"1\""
+                + "  n34 -> n48 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n48 -> n49 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n49 -> n50 // \"LEVEL\" -> \"3\""
+                + "  n48 -> n51 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n51 -> n52 // \"NAME\" -> \"F\""
+                + "  n48 -> n53 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n53 -> n54 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n53 -> n55 // \"ARITHMETIC\" -> \"BINARY\""
+                + "  n53 -> n56 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n56 -> n57 // \"PRECISION\" -> \"31\"",
+
+                false);
     }
 
     /**
@@ -460,8 +458,8 @@ public class ASTStructureMapperTest extends AbstractTester {
         mapAndCheck("dcl 1 A,"
                 + " 2 B char(1),"
                 + " 2 C fixed bin(15);",
-                
-        "  n0 -> n1 // \"\" -> \"DATA_ITEM\""
+
+                "  n0 -> n1 // \"\" -> \"DATA_ITEM\""
                 + "  n1 -> n2 // \"DATA_ITEM\" -> \"LEVEL\""
                 + "  n2 -> n3 // \"LEVEL\" -> \"1\""
                 + "  n1 -> n4 // \"DATA_ITEM\" -> \"NAME\""
@@ -473,7 +471,7 @@ public class ASTStructureMapperTest extends AbstractTester {
                 + "  n9 -> n10 // \"NAME\" -> \"FILLER\""
                 + "  n6 -> n11 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n11 -> n12 // \"STRING\" -> \"CHARACTER\""
-                + "  n6 -> n13 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n11 -> n13 // \"STRING\" -> \"LENGTH\""
                 + "  n13 -> n14 // \"LENGTH\" -> \"1\""
                 + "  n1 -> n15 // \"DATA_ITEM\" -> \"DATA_ITEM\""
                 + "  n15 -> n16 // \"DATA_ITEM\" -> \"LEVEL\""
@@ -482,21 +480,20 @@ public class ASTStructureMapperTest extends AbstractTester {
                 + "  n18 -> n19 // \"NAME\" -> \"B\""
                 + "  n15 -> n20 // \"DATA_ITEM\" -> \"STRING\""
                 + "  n20 -> n21 // \"STRING\" -> \"CHARACTER\""
-                + "  n15 -> n22 // \"DATA_ITEM\" -> \"LENGTH\""
+                + "  n20 -> n22 // \"STRING\" -> \"LENGTH\""
                 + "  n22 -> n23 // \"LENGTH\" -> \"1\""
                 + "  n1 -> n24 // \"DATA_ITEM\" -> \"DATA_ITEM\""
                 + "  n24 -> n25 // \"DATA_ITEM\" -> \"LEVEL\""
                 + "  n25 -> n26 // \"LEVEL\" -> \"2\""
                 + "  n24 -> n27 // \"DATA_ITEM\" -> \"NAME\""
                 + "  n27 -> n28 // \"NAME\" -> \"C\""
-                + "  n24 -> n29 // \"DATA_ITEM\" -> \"SCALE\""
-                + "  n29 -> n30 // \"SCALE\" -> \"FIXED\""
-                + "  n24 -> n31 // \"DATA_ITEM\" -> \"BASE\""
-                + "  n31 -> n32 // \"BASE\" -> \"BINARY\""
-                + "  n24 -> n33 // \"DATA_ITEM\" -> \"PRECISION\""
-                + "  n33 -> n34 // \"PRECISION\" -> \"15\"",
-                
-        true);
+                + "  n24 -> n29 // \"DATA_ITEM\" -> \"ARITHMETIC\""
+                + "  n29 -> n30 // \"ARITHMETIC\" -> \"FIXED\""
+                + "  n29 -> n31 // \"ARITHMETIC\" -> \"BINARY\""
+                + "  n29 -> n32 // \"ARITHMETIC\" -> \"PRECISION\""
+                + "  n32 -> n33 // \"PRECISION\" -> \"15\"",
+
+                true);
     }
 
     /**
@@ -595,7 +592,7 @@ public class ASTStructureMapperTest extends AbstractTester {
         mapper.mapStructures(adaptor, minorStructures, paddingNodes);
         return paddingNodes;
     }
- 
+
     /**
      * Generic helper to perform the complete structure mapping including
      * inserting passing nodes into the abstract syntax tree.
