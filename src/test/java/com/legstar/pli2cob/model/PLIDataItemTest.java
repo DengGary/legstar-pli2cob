@@ -4,6 +4,7 @@ import org.antlr.runtime.tree.CommonTree;
 
 import com.legstar.pli2cob.AbstractTester;
 import com.legstar.pli2cob.model.PLIDataItem.AlignmentRequirement;
+import com.legstar.pli2cob.model.PLIDataItem.StringType;
 import com.legstar.pli2cob.model.PLIDataItem.VaryingType;
 
 
@@ -172,19 +173,24 @@ public class PLIDataItemTest extends AbstractTester {
         assertEquals(1, dataItem.getLength());
         
         dataItem = parseItem("dcl 1 A(2) char(1);");
-        assertEquals(2, dataItem.getLength());
+        assertEquals(1, dataItem.getLength());
+        assertEquals(2, dataItem.getByteLength());
         
         dataItem = parseItem("dcl 1 A(1:2) char(1);");
-        assertEquals(2, dataItem.getLength());
+        assertEquals(1, dataItem.getLength());
+        assertEquals(2, dataItem.getByteLength());
         
         dataItem = parseItem("dcl 1 A(2:2) char(1);");
         assertEquals(1, dataItem.getLength());
+        assertEquals(1, dataItem.getByteLength());
         
         dataItem = parseItem("dcl 1 A(2 refer(X)) char(1);");
-        assertEquals(0, dataItem.getLength());
+        assertEquals(1, dataItem.getLength());
+        assertEquals(2, dataItem.getByteLength());
         
         dataItem = parseItem("dcl 1 A(2,3) char(1);");
-        assertEquals(6, dataItem.getLength());
+        assertEquals(1, dataItem.getLength());
+        assertEquals(6, dataItem.getByteLength());
     }
 
     /**
@@ -203,10 +209,26 @@ public class PLIDataItemTest extends AbstractTester {
         dataItem = parseItem("dcl Z char(3) nonvarying init('abc');");
         assertEquals(VaryingType.NONVARYING, dataItem.getVaryingType());
         
-        dataItem = parseItem("declare User varying character (15);");
+        dataItem = parseItem("declare User varying widechar (15);");
         assertEquals(VaryingType.VARYING, dataItem.getVaryingType());
+        assertEquals(StringType.WIDECHAR, dataItem.getStringType());
         
     }
+    /**
+     * Test union.
+     */
+    public void testUnion() {
+        
+        PLIDataItem dataItem;
+        
+        dataItem = parseItem("dcl 1 *;");
+        assertFalse(dataItem.isUnion());
+
+        dataItem = parseItem("dcl 1 * union;");
+        assertTrue(dataItem.isUnion());
+    }
+
+
     /**
      * A generic test helper that takes a source fragment and checks the result.
      * @param source the source fragment

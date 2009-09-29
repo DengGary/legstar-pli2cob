@@ -22,6 +22,8 @@ import com.legstar.pli2cob.util.ASTUtils;
  * <p/>
  * Normalizing also involves completing evaluation for certain attributes which are
  * inherited from the hierarchy. ALIGNED/UNALIGNED are such attributes.
+ * <p/>
+ * Normalizing is also used to inform union children that they redefine each other.
  *
  */
 public class ASTNormalizer {
@@ -87,6 +89,7 @@ public class ASTNormalizer {
         }
         adaptor.addChild(parentNode, newNode);
         propagateAlignment(adaptor, parentNode, newNode);
+        propagateRefines(adaptor, parentNode, newNode);
     }
 
     /**
@@ -114,6 +117,45 @@ public class ASTNormalizer {
             }
         }
 
+    }
+    
+    /**
+     * When a child node is added to a parent which happens to be a union, then the
+     * child node is marked as redefining the first child of that union. This does
+     * not apply to the first child (no point in redefining oneself).  
+     * @param adaptor the tree navigator helper
+     * @param parentNode the parent node (potentially a union)
+     * @param childNode the child node. If it is not the first union child it needs
+     *  to know the first child child which memory location it redefines
+     */
+    private void propagateRefines(
+            final TreeAdaptor adaptor,
+            final Object parentNode,
+            final Object childNode) {
+        Object unionNode = ASTUtils.getAttribute(adaptor, parentNode, PLIStructureParser.UNION);
+        if (unionNode != null) {
+            String redefinesName = ASTUtils.getAttributeStringValue(
+                    adaptor, parentNode, PLIStructureParser.REDEFINES, null);
+          
+            if (redefinesName == null) {
+
+                /* The first union child marks the union with its name to be propagated
+                 *  on the next children */
+
+                redefinesName = ASTUtils.getAttributeStringValue(
+                        adaptor, childNode, PLIStructureParser.NAME, null);
+                ASTUtils.setAttribute(adaptor, parentNode, PLIStructureParser.REDEFINES,
+                        PLIStructureParser.DATA_ITEM_NAME, redefinesName);
+
+            } else {
+                
+                /* Subsequent children are marked with the first child name (since they 
+                 * redefine its memory location)*/
+                ASTUtils.setAttribute(adaptor, childNode, PLIStructureParser.REDEFINES,
+                        PLIStructureParser.DATA_ITEM_NAME, redefinesName);
+            }
+            
+        }
     }
 
 }

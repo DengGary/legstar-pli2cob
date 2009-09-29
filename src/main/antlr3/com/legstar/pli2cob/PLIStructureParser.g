@@ -54,7 +54,7 @@ tokens {
   DIMENSION;
   HBOUND;
   LBOUND;
-  VALUE;
+  INITIAL;
   AUTOMATIC;
   STATIC;
   BASED;
@@ -62,6 +62,9 @@ tokens {
   ALIGNMENT;
   ALIGNED;
   UNALIGNED;
+  UNION;
+  /* REDEFINES is not used by the parser but is needed downstream*/
+  REDEFINES;
 }
 
 /*------------------------------------------------------------------
@@ -85,9 +88,10 @@ level:
     UNSIGNED_INTEGER ->^(LEVEL UNSIGNED_INTEGER)
     ;
 
+/* In PL/I, keywords are valid data item names. */
 data_item_name:
     DATA_ITEM_NAME ->^(NAME DATA_ITEM_NAME)
-    | ASTERISK ->^(NAME FILLER)
+    | ASTERISK ->^(NAME ASTERISK)
     | DECLARE_KEYWORD ->^(NAME DECLARE_KEYWORD)
     | REAL_KEYWORD ->^(NAME REAL_KEYWORD)
     | COMPLEX_KEYWORD ->^(NAME COMPLEX_KEYWORD)
@@ -115,6 +119,7 @@ data_item_name:
     | STATIC_KEYWORD ->^(NAME STATIC_KEYWORD)
     | BASED_KEYWORD ->^(NAME BASED_KEYWORD)
     | CONTROLLED_KEYWORD ->^(NAME CONTROLLED_KEYWORD)
+    | UNION_KEYWORD ->^(NAME UNION_KEYWORD)
     ;
 
 elementary_data_item_attribute:
@@ -128,6 +133,7 @@ misc_attribute:
     | alignment_attribute
     | initial_attribute
     | storage_attribute
+    | union_attribute
     ;
 
 terminator: SEMICOLON | EOF;
@@ -272,7 +278,7 @@ alignment_attribute:
 *------------------------------------------------------------------*/
 initial_attribute:
     INITIAL_KEYWORD LEFT_PAREN (v=STRING_LITERAL | v=SIGNED_INTEGER | v=UNSIGNED_INTEGER | v=FLOAT) RIGHT_PAREN
-    ->^(VALUE $v)
+    ->^(INITIAL $v)
     ;
 
 /*------------------------------------------------------------------
@@ -284,4 +290,12 @@ storage_attribute:
     | BASED_KEYWORD (LEFT_PAREN DATA_ITEM_NAME RIGHT_PAREN)? -> ^(STORAGE BASED)
     | CONTROLLED_KEYWORD -> ^(STORAGE CONTROLLED)
     ;
+
+/*------------------------------------------------------------------
+ * -- Union attribute
+*------------------------------------------------------------------*/
+union_attribute:
+    UNION_KEYWORD -> ^(UNION)
+    ;
+
 

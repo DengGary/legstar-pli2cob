@@ -124,7 +124,7 @@ public class ASTToCobol {
         try {
             nodeST = _stgGroup.getInstanceOf("dataDescription");
             nodeST.setAttribute("level", formatLevel(dataItem.getLevel()));
-            nodeST.setAttribute("name", formatName(dataItem.getName()));
+            nodeST.setAttribute("name", formatCobolName(dataItem.getName()));
             nodeST.setAttribute("attributes", getAttributesST(adaptor, dataItem));
         } catch (CobolFormatException e) {
             getContext().processError(e, dataItem, _log);
@@ -143,6 +143,7 @@ public class ASTToCobol {
     protected StringTemplate getAttributesST(
             final TreeAdaptor adaptor, final PLIDataItem dataItem) throws CobolFormatException {
         StringTemplate nodeST = _stgGroup.getInstanceOf("attributes");
+        nodeST.setAttribute("redefines", formatRedefines(dataItem));
         nodeST.setAttribute("occurs", formatOccurs(dataItem));
         nodeST.setAttribute("pictureUsage", formatPictureAndUsage(dataItem));
         nodeST.setAttribute("value", formatValue(dataItem));
@@ -180,7 +181,7 @@ public class ASTToCobol {
      * @return a valid COBOL name
      * @throws CobolFormatException if no valid COBOL name can be derived
      */
-    protected String formatName(
+    protected String formatCobolName(
             final String name) throws CobolFormatException {
         if (name == null || name.length() == 0) {
             throw new CobolFormatException("Empty name");
@@ -192,11 +193,43 @@ public class ASTToCobol {
         if (candidate.length() > 30) {
             candidate = candidate.substring(0, 30);
         }
+        if (candidate.equals("*")) {
+            candidate = "FILLER";
+        }
         Matcher matcher = INVALID_COBOL_NAME_PATTERN.matcher(candidate);
         if (matcher.find()) {
             throw new CobolFormatException("Name " + name + " invalid for COBOL");
         }
         return candidate;
+    }
+
+    /**
+     * If this data item redefines a previous sibling (i.e. they both belong 
+     * to a PL/I union), then this generates the REDEFINES clause.
+     * <p/>
+     * The union itself has a redefines attribute but that is for convenience only,
+     * it should not translate into a COBOL REDEFINES at the structure level.
+     * @param dataItem data item model
+     * @return a redefines clause or null if no redefines
+     * @throws CobolFormatException if formatting fails
+     */
+    protected StringTemplate formatRedefines(
+            final PLIDataItem dataItem) throws CobolFormatException {
+        StringTemplate nodeST = null;
+        if (dataItem.isUnion()) {
+            return null;
+        }
+        if (dataItem.getRedefines() != null) {
+            nodeST = _stgGroup.getInstanceOf("redefines");
+            nodeST.setAttribute("_redefines", formatCobolName(dataItem.getRedefines()));
+            if (dataItem.isArray()) {
+                _log.warn("Data item " + dataItem.getName() + " is an array and redefines "
+                        + dataItem.getRedefines() + ". COBOL compiler migt complain.");
+            }
+            return nodeST;
+        }
+        return null;
+        
     }
 
     /**
@@ -244,7 +277,7 @@ public class ASTToCobol {
                             "Unsupported variable upper bound: " + dimension.getHbound().getRefer());
                 }
                 StringTemplate dependingOnST = _stgGroup.getInstanceOf("dependingOn");
-                dependingOnST.setAttribute("dependingOn", dimension.getHbound().getRefer());
+                dependingOnST.setAttribute("dependingOn", formatCobolName(dimension.getHbound().getRefer()));
                 nodeST.setAttribute("dependingOn", dependingOnST);
             }
 
@@ -482,11 +515,11 @@ public class ASTToCobol {
     protected StringTemplate formatValue(
             final PLIDataItem dataItem) throws CobolFormatException {
         StringTemplate nodeST = null;
-        if (dataItem.getValue() == null) {
+        if (dataItem.getInitial() == null) {
             return null;
         }
         nodeST = _stgGroup.getInstanceOf("value");
-        nodeST.setAttribute("_value", dataItem.getValue());
+        nodeST.setAttribute("_value", dataItem.getInitial());
         return nodeST;
     }
 

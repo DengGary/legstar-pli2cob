@@ -31,6 +31,7 @@ public class ASTReferenceGraph extends TestCase {
         Object dataItem = adaptor.create(PLIStructureParser.DATA_ITEM, "DATA_ITEM");
         addAttribute(adaptor, dataItem, PLIStructureParser.NAME, "NAME", "name | *");
         addAttribute(adaptor, dataItem, PLIStructureParser.LEVEL, "LEVEL", "level");
+        addAttribute(adaptor, dataItem, PLIStructureParser.UNION, "UNION", null);
 
         /* String elementary types */
         Object stringNode = addAttribute(adaptor, dataItem, PLIStructureParser.STRING,
@@ -59,7 +60,7 @@ public class ASTReferenceGraph extends TestCase {
         
         /* Other attributes */
         addAttribute(adaptor, dataItem, PLIStructureParser.ALIGNMENT, "ALIGNMENT", "ALIGNED | UNALIGNED");
-        addAttribute(adaptor, dataItem, PLIStructureParser.VALUE, "VALUE", "value");
+        addAttribute(adaptor, dataItem, PLIStructureParser.INITIAL, "INITIAL", "value");
         addAttribute(adaptor, dataItem, PLIStructureParser.STORAGE, "STORAGE",
                 "AUTOMATIC | STATIC | BASED | CONTROLLED");
 
