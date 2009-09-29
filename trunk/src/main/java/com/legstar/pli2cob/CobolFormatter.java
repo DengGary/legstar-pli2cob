@@ -133,10 +133,8 @@ public class CobolFormatter {
     private int lookupImmediateParentLevel(final int level) {
         int immediateParent = -1;
         for (Map.Entry < Integer, Integer > entry : _levelIndents.entrySet()) {
-            if (entry.getKey() < level) {
-                if (entry.getKey() > immediateParent) {
-                    immediateParent = entry.getKey();
-                }
+            if (entry.getKey() < level && entry.getKey() > immediateParent) {
+                immediateParent = entry.getKey();
             }
         }
         return immediateParent;

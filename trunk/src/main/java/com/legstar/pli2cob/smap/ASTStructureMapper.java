@@ -381,7 +381,7 @@ public class ASTStructureMapper {
             final Object insertionNode,
             final int padding) throws StructureMappingException {
         PLIDataItem insertionItem = new PLIDataItem(insertionNode, null);
-        Object paddingNode = createPaddingNode(adaptor, insertionItem.getLevel(), padding);
+        Object paddingNode = createPaddingNode(insertionItem.getLevel(), padding);
         Object parentNode = adaptor.getParent(insertionNode);
         int paddingIndex = adaptor.getChildIndex(insertionNode);
         CommonTree tree = (CommonTree) parentNode;
@@ -391,14 +391,12 @@ public class ASTStructureMapper {
 
     /**
      * Create an Abstract Syntax Tree node corresponding to padding characters.
-     * @param adaptor the tree navigator helper
      * @param physicalLevel the level this padding item should exhibit
      * @param padding the amount of padding
      * @return a node ready to be inserted in the AST
      * @throws StructureMappingException if node cannot be created
      */
     private Object createPaddingNode(
-            final TreeAdaptor adaptor,
             final int physicalLevel,
             final int padding) throws StructureMappingException {
 

@@ -92,7 +92,7 @@ public class PLIDataItem implements IMappable {
     public List < PLIDataDimension > getDimensions() {
         return _dimensions;
     }
-    
+
     /**
      * @return true if this item is an array
      */
@@ -124,7 +124,6 @@ public class PLIDataItem implements IMappable {
         setPictureAttributes(adaptor, astItem);
         setInitial(adaptor, astItem);
         setAligned(adaptor, astItem);
-        setAlignmentRequirement(adaptor, astItem);
         setDimensions(adaptor, astItem);
         setUnion(adaptor, astItem);
         setRedefines(adaptor, astItem);
@@ -638,22 +637,21 @@ public class PLIDataItem implements IMappable {
             } else {
                 _isAligned = false;
             }
-            return;
+        } else {
+            /* Defaults should apply.*/
+            if (isString()) {
+                _isAligned = false;
+            }
         }
-        /* Defaults should apply.*/
-        if (isString()) {
-            _isAligned = false;
-        }
+        setAlignmentRequirement();
     }
 
     /**
      * Evaluates the alignment requirement for this data item.
      * <p/>
      * Unaligned data is aligned on byte boundary unless it is a bit string.
-     * @param adaptor the tree navigator
-     * @param astItem the data item abstract syntax subtree
      */
-    private void setAlignmentRequirement(final TreeAdaptor adaptor, final Object astItem) {
+    private void setAlignmentRequirement() {
         _alignmentRequirement = AlignmentRequirement.BYTE;
         if (!_isAligned) {
             if (_isString && _stringType == StringType.BIT) {

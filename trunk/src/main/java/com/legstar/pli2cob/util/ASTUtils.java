@@ -122,7 +122,7 @@ public final class ASTUtils {
     }
 
     /**
-     * Transformed an alignment requirement into a number.
+     * Transforms an alignment requirement into a number.
      * @param alignementRequirement the alignment requirement
      * @return how many units (bits or bytes) this alignment requirement represents
      */
