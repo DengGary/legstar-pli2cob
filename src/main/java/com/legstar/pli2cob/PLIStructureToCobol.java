@@ -26,6 +26,8 @@ import com.legstar.pli2cob.smap.StructureMappingException;
  * <li>Parsing keywords to extract meaningful PLI statements</li>
  * <li>Converting PLI statements to COBOL equivalents</li>
  * </ul>
+ * This is the API made available to programmatically invoke the PL/I to COBOL converter.
+ * 
  * 
  */
 public class PLIStructureToCobol {

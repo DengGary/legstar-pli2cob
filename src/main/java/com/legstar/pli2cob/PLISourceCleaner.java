@@ -88,7 +88,7 @@ public class PLISourceCleaner {
      * Holder for sequence numbering status and starting column.
      *
      */
-    public class SequenceNumbering {
+    public static class SequenceNumbering {
         /** True if there is a sequence number. */
         private boolean _on = false;
 
