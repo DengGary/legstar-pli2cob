@@ -2,6 +2,7 @@ package com.legstar.pli2cob.util;
 
 import org.antlr.runtime.tree.TreeAdaptor;
 
+import com.legstar.pli2cob.PLIStructureParser;
 import com.legstar.pli2cob.model.PLIDataItem.AlignmentRequirement;
 
 /**
@@ -9,12 +10,12 @@ import com.legstar.pli2cob.model.PLIDataItem.AlignmentRequirement;
  *
  */
 public final class ASTUtils {
-    
+
     /**
      * Utility class.
      */
     private ASTUtils() {
-        
+
     }
 
     /**
@@ -31,14 +32,31 @@ public final class ASTUtils {
             final Object astItem,
             final int attributeType,
             final int defaultValue) {
-        String stringValue = (String) getAttributeValue(adaptor, astItem, attributeType, null);
+        String stringValue = getAttributeStringValue(adaptor, astItem, attributeType, null);
         if (stringValue == null) {
             return defaultValue;
         } else {
             return Integer.parseInt(stringValue);
         }
     }
-    
+
+    /**
+     * Same as {@link getAttributeValue} when the attribute value is known to be
+     * a string.
+     * @param adaptor the tree navigator
+     * @param astItem the data item abstract syntax subtree
+     * @param attributeType the type of attribute
+     * @param defaultValue the default value
+     * @return the attribute value or a default.
+     */
+    public static String getAttributeStringValue(
+            final TreeAdaptor adaptor,
+            final Object astItem,
+            final int attributeType,
+            final String defaultValue) {
+        return (String) getAttributeValue(adaptor, astItem, attributeType, defaultValue);
+    }
+
     /**
      * For single valued attributes, this returns either the value or a default
      * one if none is found.
@@ -46,16 +64,13 @@ public final class ASTUtils {
      * @param astItem the data item abstract syntax subtree
      * @param attributeType the type of attribute
      * @param defaultValue the default value
-     * @return the attribute value or a default. Null if the element is nil.
+     * @return the attribute value or a default.
      */
     public static Object getAttributeValue(
             final TreeAdaptor adaptor,
             final Object astItem,
             final int attributeType,
             final Object defaultValue) {
-        if (adaptor.isNil(astItem)) {
-            return null;
-        }
         Object value = getAttribute(adaptor, astItem, attributeType);
         if (value == null) {
             return defaultValue;
@@ -84,7 +99,28 @@ public final class ASTUtils {
         }
         return null;
     }
-    
+
+    /**
+     * Create a new attribute for an item with a value node.
+     * @param adaptor the tree navigator
+     * @param astItem the data item abstract syntax subtree
+     * @param attributeType the type of attribute
+     * @param attributeValueType the type of value
+     * @param attributeValue the attribute value
+     */
+    public static void setAttribute(
+            final TreeAdaptor adaptor,
+            final Object astItem,
+            final int attributeType,
+            final int attributeValueType,
+            final String attributeValue) {
+        String attributeName = PLIStructureParser.tokenNames[attributeType];
+        Object attributeTree = adaptor.create(attributeType, attributeName);
+        Object attributeValueTree = adaptor.create(attributeValueType, attributeValue);
+        adaptor.addChild(attributeTree, attributeValueTree);
+        adaptor.addChild(astItem, attributeTree);
+    }
+
     /**
      * Transformed an alignment requirement into a number.
      * @param alignementRequirement the alignment requirement

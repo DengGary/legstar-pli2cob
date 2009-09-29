@@ -66,7 +66,7 @@ public class PLIDataItem implements IMappable {
     private boolean _isSigned;
 
     /** The initial clause content.*/
-    private String _value;
+    private String _initial;
 
     /** Item should be aligned on its required boundary.*/
     private boolean _isAligned = true;
@@ -77,6 +77,12 @@ public class PLIDataItem implements IMappable {
     /** Dimensions list. */
     private List < PLIDataDimension > _dimensions = new ArrayList < PLIDataDimension >();
 
+    /** Item is a union declaration.*/
+    private boolean _isUnion = false;
+
+    /** Name of the first child in union. */
+    private String _redefines;
+
     /** A pattern to detect repetition factor.*/
     private static final Pattern REPETITION_FACTOR_PATTERN = Pattern.compile("\\(\\d+\\)");
 
@@ -85,6 +91,13 @@ public class PLIDataItem implements IMappable {
      */
     public List < PLIDataDimension > getDimensions() {
         return _dimensions;
+    }
+    
+    /**
+     * @return true if this item is an array
+     */
+    public boolean isArray() {
+        return (getDimensions().size() > 0);
     }
 
     /**
@@ -109,10 +122,12 @@ public class PLIDataItem implements IMappable {
         setNumericAttributes(adaptor, astItem);
         setStringAttributes(adaptor, astItem);
         setPictureAttributes(adaptor, astItem);
-        setValue(adaptor, astItem);
+        setInitial(adaptor, astItem);
         setAligned(adaptor, astItem);
         setAlignmentRequirement(adaptor, astItem);
         setDimensions(adaptor, astItem);
+        setUnion(adaptor, astItem);
+        setRedefines(adaptor, astItem);
     }
 
     /**
@@ -169,7 +184,7 @@ public class PLIDataItem implements IMappable {
     public int getLength() {
         return _length;
     }
-    
+
     /**
      * @return the size in bits. Useful for BIT data items only.
      */
@@ -178,11 +193,43 @@ public class PLIDataItem implements IMappable {
     }
 
     /**
+     * @return this item byte size. For arrays, this is the maximum byte size of
+     *  the entire array.
+     */
+    public int getByteLength() {
+        int byteLength = getLength();
+        for (PLIDataDimension dataDimension : getDimensions()) {
+            int items = 0;
+            if (dataDimension.getLbound() != null) {
+                items =  dataDimension.getHbound().getBound() - dataDimension.getLbound().getBound() + 1;
+            } else {
+                items =  dataDimension.getHbound().getBound();
+            }
+            byteLength *= items;
+        }
+        return byteLength;
+    }
+
+    /**
      * @return true if this is a group item
      * (elementary items are either strings or numerics).
      */
     public boolean isGroup() {
         return !(isString() || isNumeric());
+    }
+
+    /**
+     * @return true if this is a union
+     */
+    public boolean isUnion() {
+        return _isUnion;
+    }
+
+    /**
+     * @return the name of the first child in a union
+     */
+    public String getRedefines() {
+        return _redefines;
     }
 
     /**
@@ -230,8 +277,8 @@ public class PLIDataItem implements IMappable {
     /**
      * @return the initial clause content
      */
-    public String getValue() {
-        return _value;
+    public String getInitial() {
+        return _initial;
     }
 
     /**
@@ -259,12 +306,11 @@ public class PLIDataItem implements IMappable {
      * @param astItem the data item abstract syntax subtree
      */
     private void setLevel(final TreeAdaptor adaptor, final Object astItem) {
-        String level = (String) ASTUtils.getAttributeValue(
-                adaptor, astItem, PLIStructureParser.LEVEL, "1");
-        if (level == null) {
+        if (adaptor.isNil(astItem)) {
             _level = 0;
         } else {
-            _level = Integer.parseInt(level);
+            _level = ASTUtils.getAttributeIntValue(
+                    adaptor, astItem, PLIStructureParser.LEVEL, 1);
         }
     }
 
@@ -276,10 +322,10 @@ public class PLIDataItem implements IMappable {
      * @param astItem the data item abstract syntax subtree
      */
     private void setName(final TreeAdaptor adaptor, final Object astItem) {
-        _name = (String) ASTUtils.getAttributeValue(
+        _name = ASTUtils.getAttributeStringValue(
                 adaptor, astItem, PLIStructureParser.NAME, null);
     }
-    
+
     /**
      * A qualified name uses the qualifier as a prefix.
      * @param qualifier a qualifier or null if none is to be used
@@ -294,14 +340,10 @@ public class PLIDataItem implements IMappable {
 
     /**
      * Initial setting for dimensions for a given data item.
-     * <p/>
-     * This must be executed after the length of individual items have been
-     * evaluated. The length is then adjusted depending on dimensions.
      * @param adaptor the tree navigator
      * @param astItem the data item abstract syntax subtree
      */
     private void setDimensions(final TreeAdaptor adaptor, final Object astItem) {
-        int totalLength = getLength();
         Object dimensions = ASTUtils.getAttribute(
                 adaptor, astItem, PLIStructureParser.DIMENSIONS);
         if (dimensions == null) {
@@ -313,18 +355,8 @@ public class PLIDataItem implements IMappable {
             if (adaptor.getType(dimension) == PLIStructureParser.DIMENSION) {
                 PLIDataDimension dataDimension = new PLIDataDimension(adaptor, dimension);
                 _dimensions.add(dataDimension);
-                int items = 0;
-                if (dataDimension.getHbound().getRefer() == null) {
-                    if (dataDimension.getLbound() != null && dataDimension.getLbound().getRefer() == null) {
-                        items =  dataDimension.getHbound().getBound() - dataDimension.getLbound().getBound() + 1;
-                    } else {
-                        items =  dataDimension.getHbound().getBound();
-                    }
-                }
-                totalLength *= items;
             }
         }
-        _length = totalLength;
 
     }
 
@@ -338,16 +370,12 @@ public class PLIDataItem implements IMappable {
         if (stringNode == null) {
             _isString = false;
         } else {
-            String string = adaptor.getText(adaptor.getChild(stringNode, 0));
-            String length = (String) ASTUtils.getAttributeValue(
-                    adaptor, stringNode, PLIStructureParser.LENGTH, null);
-            String varying = (String) ASTUtils.getAttributeValue(
-                    adaptor, stringNode, PLIStructureParser.VARYING, null);
             _isString = true;
-            _length = (length == null) ? 1 : Integer.parseInt(length);
-            _stringType = (string == null) ? StringType.CHARACTER : StringType.valueOf(string);
-            _varyingType = (varying == null) ? VaryingType.NONVARYING : VaryingType.valueOf(varying);
-            
+            _stringType = getStringType(adaptor, stringNode);
+            _length = ASTUtils.getAttributeIntValue(
+                    adaptor, stringNode, PLIStructureParser.LENGTH, 1);
+            _varyingType = getVaryingType(adaptor, stringNode);
+
             /* The length needs to be a size in bytes*/
             if (_stringType == StringType.BIT) {
                 _bitLength = _length;
@@ -357,12 +385,43 @@ public class PLIDataItem implements IMappable {
     }
 
     /**
+     * Get the string type.
+     * @param  adaptor the tree navigator
+     * @param stringNode the string node
+     * @return the string type
+     */
+    private StringType getStringType(final TreeAdaptor adaptor, final Object stringNode) {
+        if (null != ASTUtils.getAttribute(adaptor, stringNode, PLIStructureParser.BIT)) {
+            return StringType.BIT;
+        }
+        if (null != ASTUtils.getAttribute(adaptor, stringNode, PLIStructureParser.GRAPHIC)) {
+            return StringType.GRAPHIC;
+        }
+        if (null != ASTUtils.getAttribute(adaptor, stringNode, PLIStructureParser.WIDECHAR)) {
+            return StringType.WIDECHAR;
+        }
+        return StringType.CHARACTER;
+    }
+
+    /**
+     * Get the varying type.
+     * @param  adaptor the tree navigator
+     * @param stringNode the string node
+     * @return the varying type
+     */
+    private VaryingType getVaryingType(final TreeAdaptor adaptor, final Object stringNode) {
+        String varying = ASTUtils.getAttributeStringValue(
+                adaptor, stringNode, PLIStructureParser.VARYING, null);
+        return (varying == null) ? VaryingType.NONVARYING : VaryingType.valueOf(varying);
+    }
+
+    /**
      * Initial setting for picture related attributes.
      * @param adaptor the tree navigator
      * @param astItem the data item abstract syntax subtree
      */
     private void setPictureAttributes(final TreeAdaptor adaptor, final Object astItem) {
-        String picture = (String) ASTUtils.getAttributeValue(
+        String picture = ASTUtils.getAttributeStringValue(
                 adaptor, astItem, PLIStructureParser.PICTURE, null);
         if (picture != null && picture.length() > 0) {
             _picture = picture.replace("\"", "").replace("'", "");
@@ -433,7 +492,7 @@ public class PLIDataItem implements IMappable {
             _isNumeric = false;
         } else {
             _isNumeric = true;
-             _scale = getScale(adaptor, arithmeticNode);
+            _scale = getScale(adaptor, arithmeticNode);
             _base = getBase(adaptor, arithmeticNode);
             Object precisionNode = ASTUtils.getAttribute(
                     adaptor, arithmeticNode, PLIStructureParser.PRECISION);
@@ -442,15 +501,14 @@ public class PLIDataItem implements IMappable {
                 _scalingFactor = 0;
             } else {
                 _precision = Integer.parseInt(adaptor.getText(adaptor.getChild(precisionNode, 0)));
-                String scalingFactor = (String) ASTUtils.getAttributeValue(
-                        adaptor, precisionNode, PLIStructureParser.SCALING_FACTOR, null);
-                _scalingFactor = (scalingFactor == null) ? 0 : Integer.parseInt(scalingFactor);
+                _scalingFactor = ASTUtils.getAttributeIntValue(
+                        adaptor, precisionNode, PLIStructureParser.SCALING_FACTOR, 0);
             }
             _isSigned = getSign(adaptor, arithmeticNode);
             _length = calcNumericLength();
         }
     }
-    
+
     /**
      * Get the scale. Surprisingly FLOAT is the default.
      * @param  adaptor the tree navigator
@@ -476,7 +534,7 @@ public class PLIDataItem implements IMappable {
         }
         return Base.DECIMAL;
     }
-    
+
     /**
      * Get the sign. By default all numerics are signed.
      * @param  adaptor the tree navigator
@@ -559,9 +617,9 @@ public class PLIDataItem implements IMappable {
      * @param adaptor the tree navigator
      * @param astItem the data item abstract syntax subtree
      */
-    private void setValue(final TreeAdaptor adaptor, final Object astItem) {
-        _value = (String) ASTUtils.getAttributeValue(
-                adaptor, astItem, PLIStructureParser.VALUE, null);
+    private void setInitial(final TreeAdaptor adaptor, final Object astItem) {
+        _initial = ASTUtils.getAttributeStringValue(
+                adaptor, astItem, PLIStructureParser.INITIAL, null);
     }
 
     /**
@@ -571,7 +629,7 @@ public class PLIDataItem implements IMappable {
      * @param astItem the data item abstract syntax subtree
      */
     private void setAligned(final TreeAdaptor adaptor, final Object astItem) {
-        String alignment = (String) ASTUtils.getAttributeValue(
+        String alignment = ASTUtils.getAttributeStringValue(
                 adaptor, astItem, PLIStructureParser.ALIGNMENT, null);
         /* Item explicitly declared*/
         if (alignment != null) {
@@ -655,6 +713,33 @@ public class PLIDataItem implements IMappable {
         }
     }
 
+    /**
+     * Set the union attribute corresponding to the PLI UNION clause of
+     * a data item.
+     * @param adaptor the tree navigator
+     * @param astItem the data item abstract syntax subtree
+     */
+    private void setUnion(final TreeAdaptor adaptor, final Object astItem) {
+        _isUnion = (null == ASTUtils.getAttribute(
+                adaptor, astItem, PLIStructureParser.UNION)) ? false : true;
+    }
+
+    /**
+     * Set the name of the first child in a union.
+     * <p/>
+     * This attribute is added by <code>ASTNormalizer</code> to the union itself
+     * as well as all children except the first one.
+     * <p/>
+     * The semantic is identical to COBOL REDEFINES.
+     *  
+     * @param adaptor the tree navigator
+     * @param astItem the data item abstract syntax subtree
+     */
+    private void setRedefines(final TreeAdaptor adaptor, final Object astItem) {
+        _redefines = ASTUtils.getAttributeStringValue(
+                adaptor, astItem, PLIStructureParser.REDEFINES, null);
+    }
+
     /** Floating point or fixed numerics. */
     public enum Scale { FLOAT, FIXED };
 
@@ -720,9 +805,16 @@ public class PLIDataItem implements IMappable {
             sb.append(", ");
             sb.append("picture : " + getPicture());
         }
-        if (getValue() != null) {
+        if (getInitial() != null) {
             sb.append(", ");
-            sb.append("value : " + getValue());
+            sb.append("initial : " + getInitial());
+        }
+        if (isUnion()) {
+            sb.append(", ");
+            sb.append("union : " + isUnion());
+        } else if (getRedefines() != null) {
+            sb.append(", ");
+            sb.append("redefines : " + getRedefines());
         }
         sb.append(", ");
         sb.append("aligned : " + isAligned());

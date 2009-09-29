@@ -36,6 +36,7 @@ AUTOMATIC_KEYWORD: 'AUTOMATIC' | 'automatic' | 'Automatic' | 'AUTO' | 'Auto' | '
 STATIC_KEYWORD: 'STATIC' | 'Static' | 'static';
 BASED_KEYWORD: 'BASED' | 'Based' | 'based';
 CONTROLLED_KEYWORD: 'CONTROLLED' | 'controlled' | 'Controlled' | 'CTL' | 'ctl' | 'Ctl';
+UNION_KEYWORD: 'UNION' | 'union' | 'Union';
 
 /*------------------------------------------------------------------
  * Character lexicon

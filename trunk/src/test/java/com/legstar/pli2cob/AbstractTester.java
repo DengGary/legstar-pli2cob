@@ -92,6 +92,7 @@ public abstract class AbstractTester extends TestCase {
             final String expected) throws CobolFormatException {
         ASTToCobol converter = new ASTToCobol(new Pli2CobContext());
         String cobol = converter.convert(parseAndNormalize(source));
+        _log.debug(cobol);
         assertEquals(expected, cobol);
     }
 

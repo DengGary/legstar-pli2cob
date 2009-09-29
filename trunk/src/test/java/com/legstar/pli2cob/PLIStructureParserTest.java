@@ -661,8 +661,42 @@ public class PLIStructureParserTest extends AbstractTester {
                 + "  n3 -> n4 // \"STRING\" -> \"CHARACTER\""
                 + "  n3 -> n5 // \"STRING\" -> \"LENGTH\""
                 + "  n5 -> n6 // \"LENGTH\" -> \"20\""
-                + "  n0 -> n7 // \"DATA_ITEM\" -> \"VALUE\""
-                + "  n7 -> n8 // \"VALUE\" -> \"'abcd'\""
+                + "  n0 -> n7 // \"DATA_ITEM\" -> \"INITIAL\""
+                + "  n7 -> n8 // \"INITIAL\" -> \"'abcd'\""
+        );
+     }
+
+    /**
+     * Test with a simple union statement.
+     */
+    public void testUnionStatement() {
+        parseCheck(
+                "dcl 1 * union, 2 b3 bit(32), 2 b4 bit(16);",
+
+                "  n0 -> n1 // \"\" -> \"DATA_ITEM\""
+                + "  n1 -> n2 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n2 -> n3 // \"LEVEL\" -> \"1\""
+                + "  n1 -> n4 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n4 -> n5 // \"NAME\" -> \"*\""
+                + "  n1 -> n6 // \"DATA_ITEM\" -> \"UNION\""
+                + "  n0 -> n7 // \"\" -> \"DATA_ITEM\""
+                + "  n7 -> n8 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n8 -> n9 // \"LEVEL\" -> \"2\""
+                + "  n7 -> n10 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n10 -> n11 // \"NAME\" -> \"b3\""
+                + "  n7 -> n12 // \"DATA_ITEM\" -> \"STRING\""
+                + "  n12 -> n13 // \"STRING\" -> \"BIT\""
+                + "  n12 -> n14 // \"STRING\" -> \"LENGTH\""
+                + "  n14 -> n15 // \"LENGTH\" -> \"32\""
+                + "  n0 -> n16 // \"\" -> \"DATA_ITEM\""
+                + "  n16 -> n17 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n17 -> n18 // \"LEVEL\" -> \"2\""
+                + "  n16 -> n19 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n19 -> n20 // \"NAME\" -> \"b4\""
+                + "  n16 -> n21 // \"DATA_ITEM\" -> \"STRING\""
+                + "  n21 -> n22 // \"STRING\" -> \"BIT\""
+                + "  n21 -> n23 // \"STRING\" -> \"LENGTH\""
+                + "  n23 -> n24 // \"LENGTH\" -> \"16\""
         );
      }
 

@@ -21,7 +21,7 @@ public interface IMappable {
     /**
      * @return the size in bytes of this unit
      */
-    int getLength();
+    int getByteLength();
 
     /**
      * @return the offset of this unit from a doubleword boundary

@@ -21,7 +21,7 @@ public class StructureMappingUnit implements IMappable {
     private PLIDataItem.AlignmentRequirement _alignmentRequirement = PLIDataItem.AlignmentRequirement.BYTE;
 
     /** Size in bytes of this unit. */
-    private int _length;
+    private int _byteLength;
 
     /** Amount of padding that was added.*/
     private int _padding;
@@ -42,7 +42,7 @@ public class StructureMappingUnit implements IMappable {
     public StructureMappingUnit(final String name, final IMappable mappingUnit) {
         _offset = mappingUnit.getOffset();
         _alignmentRequirement = mappingUnit.getAlignmentRequirement();
-        _length = mappingUnit.getLength();
+        _byteLength = mappingUnit.getByteLength();
         _padding = 0;
         _name = name;
     }
@@ -75,7 +75,7 @@ public class StructureMappingUnit implements IMappable {
         /* Begin the first element of the pair on a doubleword boundary; or,
          * if the element is a minor structure that has already been mapped,
          * offset it from the doubleword boundary by the amount indicated.*/
-        int unitLength = firstElement.getOffset() + firstElement.getLength();
+        int unitLength = firstElement.getOffset() + firstElement.getByteLength();
 
         /* Begin the second element of the pair at the first valid position
          * following the end of the first element. This position depends on
@@ -100,7 +100,7 @@ public class StructureMappingUnit implements IMappable {
         /* offsets are from doubleword boundaries*/
         _offset = _offset % 8;
 
-        _length = firstElement.getLength() + _padding + secondElement.getLength();
+        _byteLength = firstElement.getByteLength() + _padding + secondElement.getByteLength();
         
         
         /* A unit alignment requirement is the highest for each pair element */
@@ -134,8 +134,8 @@ public class StructureMappingUnit implements IMappable {
     /**
      * @return the size in bytes of this unit
      */
-    public int getLength() {
-        return _length;
+    public int getByteLength() {
+        return _byteLength;
     }
 
     /**
@@ -163,7 +163,7 @@ public class StructureMappingUnit implements IMappable {
         sb.append(", ");
         sb.append("offset : " + getOffset());
         sb.append(", ");
-        sb.append("length : " + getLength());
+        sb.append("length : " + getByteLength());
         sb.append(", ");
         sb.append("padding : " + getPadding());
         sb.append("]");

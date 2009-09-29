@@ -17,8 +17,12 @@ dataDescription(level,name,attributes) ::= <<
 <level> <name><attributes>.<\n>
 >>
 
-attributes(occurs,pictureUsage,value) ::= <<
-<occurs><pictureUsage><value>
+attributes(redefines,occurs,pictureUsage,value) ::= <<
+<redefines><occurs><pictureUsage><value>
+>>
+
+redefines(_redefines) ::= <<
+ REDEFINES <_redefines>
 >>
 
 occurs(maxOccurs,dependingOn) ::= <<

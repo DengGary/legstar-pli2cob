@@ -293,6 +293,43 @@ public class ASTNormalizerTest extends AbstractTester {
     }
 
     /**
+     * A union.
+     */
+    public void testUnion() {
+        normalizeCheck(
+                "dcl 1 * union, 2 b3 bit(32), 2 b4 bit(16);",
+
+                "  n0 -> n1 // \"\" -> \"DATA_ITEM\""
+                + "  n1 -> n2 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n2 -> n3 // \"LEVEL\" -> \"1\""
+                + "  n1 -> n4 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n4 -> n5 // \"NAME\" -> \"*\""
+                + "  n1 -> n6 // \"DATA_ITEM\" -> \"UNION\""
+                + "  n1 -> n7 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n7 -> n8 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n8 -> n9 // \"LEVEL\" -> \"2\""
+                + "  n7 -> n10 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n10 -> n11 // \"NAME\" -> \"b3\""
+                + "  n7 -> n12 // \"DATA_ITEM\" -> \"STRING\""
+                + "  n12 -> n13 // \"STRING\" -> \"BIT\""
+                + "  n12 -> n14 // \"STRING\" -> \"LENGTH\""
+                + "  n14 -> n15 // \"LENGTH\" -> \"32\""
+                + "  n1 -> n16 // \"DATA_ITEM\" -> \"REDEFINES\""
+                + "  n16 -> n17 // \"REDEFINES\" -> \"b3\""
+                + "  n1 -> n18 // \"DATA_ITEM\" -> \"DATA_ITEM\""
+                + "  n18 -> n19 // \"DATA_ITEM\" -> \"LEVEL\""
+                + "  n19 -> n20 // \"LEVEL\" -> \"2\""
+                + "  n18 -> n21 // \"DATA_ITEM\" -> \"NAME\""
+                + "  n21 -> n22 // \"NAME\" -> \"b4\""
+                + "  n18 -> n23 // \"DATA_ITEM\" -> \"STRING\""
+                + "  n23 -> n24 // \"STRING\" -> \"BIT\""
+                + "  n23 -> n25 // \"STRING\" -> \"LENGTH\""
+                + "  n25 -> n26 // \"LENGTH\" -> \"16\""
+                + "  n18 -> n27 // \"DATA_ITEM\" -> \"REDEFINES\""
+                + "  n27 -> n28 // \"REDEFINES\" -> \"b3\""
+        );
+    }
+    /**
      * A generic test helper that takes a source fragment and checks the result.
      * @param source the source fragment
      * @param expected the expected sub graph
