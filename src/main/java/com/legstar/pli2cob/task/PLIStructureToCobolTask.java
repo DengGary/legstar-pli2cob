@@ -77,7 +77,7 @@ public class PLIStructureToCobolTask extends Task {
      *  Check parameters and produce COBOL fragment.
      */
     public final void execute() {
-        _log.info("Converting PLI files");
+        _log.info("Translating PLI files");
 
         checkParameters();
 
@@ -92,7 +92,7 @@ public class PLIStructureToCobolTask extends Task {
                 String[] files = scanner.getIncludedFiles();
                 for (int i = 0; i < files.length; i++) {
                     File pliSourceFile = new File(fileset.getDir(getProject()), files[i]);
-                    _log.info("Converting PLI file: " + pliSourceFile);
+                    _log.info("Translating PLI file: " + pliSourceFile);
                     String cobolSource = pli2cob.execute(fileToString(pliSourceFile));
                     File cobolSourceFile = stringToFile(getTargetDir(), pliSourceFile, cobolSource);
                     _log.info("Created COBOL file: " + cobolSourceFile);
@@ -188,7 +188,7 @@ public class PLIStructureToCobolTask extends Task {
     }
 
     /**
-     * Creates a COBOL file converted from a PLI source.
+     * Creates a COBOL file translated from a PLI source.
      * @param targetDir the target directory we know exists
      * @param sourceFile the original source file (used to derive a name for the target file)
      * @param cobolSource the COBOL source code as a string

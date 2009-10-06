@@ -68,16 +68,71 @@ tokens {
 }
 
 /*------------------------------------------------------------------
- * Target java package
+ * Java overrides
  *------------------------------------------------------------------*/
-@header { package com.legstar.pli2cob; }
+@header {
+package com.legstar.pli2cob;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+}
+
+@members {
+    /** Logger. */
+    private final Log _log = LogFactory.getLog(getClass());
+
+    /** {@inheritDoc} */
+    public String getErrorMessage(final RecognitionException e, final String[] tokenNames) {
+        if (_log.isDebugEnabled()) {
+            List < ? > stack = getRuleInvocationStack(e, this.getClass().getName());
+            String msg = null;
+            if (e instanceof NoViableAltException) {
+                NoViableAltException nvae = (NoViableAltException) e;
+                msg = super.getErrorMessage(e, tokenNames)
+                    + " (decision=" + nvae.decisionNumber
+                    + " state=" + nvae.stateNumber + ")"
+                    + " decision=<<" + nvae.grammarDecisionDescription + ">>";
+            } else {
+               msg = super.getErrorMessage(e, tokenNames);
+            }
+            return msg + ". Stack=" + stack;
+        } else {
+            return super.getErrorMessage(e, tokenNames);
+        }
+    }
+
+    /** {@inheritDoc} */
+    public String getTokenErrorDisplay(final Token t) {
+        if (_log.isDebugEnabled()) {
+            return t.toString();
+        } else {
+            return super.getTokenErrorDisplay(t);
+        }
+    }
+
+    /** {@inheritDoc} */
+    public void emitErrorMessage(final String msg) {
+        _log.error(msg);
+    }
+
+}
 
 /*------------------------------------------------------------------
  * Parsing rules
  *------------------------------------------------------------------*/
-script: declare* EOF!;
+/* A PL/I source is a mixture of declare and non declare statements.
+   Non declare statements are ignored.
+*/
+plicode: ((declare)=>declare | non_declare!)*;
 
-declare: DECLARE_KEYWORD! data_item (COMMA! data_item)* terminator!;
+/* Declares start with a mandatory declare keyword and end with a
+   semicolon. Structures have inner items delimited by commas.
+*/
+declare: DECLARE_KEYWORD! data_item (COMMA! data_item)* SEMICOLON!;
+
+/* Non declare statements may contain any character but must end
+   with a semicolon.
+*/
+non_declare options {greedy=false;}:  .* SEMICOLON;
 
 data_item:
     level? data_item_name implicit_dimension_attribute? elementary_data_item_attribute? misc_attribute*
@@ -135,8 +190,6 @@ misc_attribute:
     | storage_attribute
     | union_attribute
     ;
-
-terminator: SEMICOLON | EOF;
 
 /*------------------------------------------------------------------
  * -- String attributes

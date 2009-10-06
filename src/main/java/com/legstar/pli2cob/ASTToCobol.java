@@ -54,14 +54,14 @@ public class ASTToCobol {
     }
 
     /**
-     * Converts one or multiple PLI declare statements to COBOL data description clauses.
+     * Translates one or multiple PLI declare statements to COBOL data description clauses.
      * <p/>
      * Loads the antlr string templates group from a file on classpath.
      * @param ast the abstract syntax tree
      * @return a COBOL fragment with data descriptions
      * @throws CobolFormatException if conversion fails
      */
-    public String convert(
+    public String translate(
             final CommonTree ast) throws CobolFormatException {
         TreeAdaptor adaptor = new CommonTreeAdaptor();
         _stgGroup = new StringTemplateGroup(
@@ -348,7 +348,7 @@ public class ASTToCobol {
                         throw new CobolFormatException(
                                 "Unsupported bit length: " + dataItem.getBitLength());
                     }
-                    _log.warn("Bit item converted to PIC X(" + dataItem.getLength() + "). Item=" + dataItem);
+                    _log.warn("Bit item translated to PIC X(" + dataItem.getLength() + "). Item=" + dataItem);
                     nodeST = _stgGroup.getInstanceOf("characterPictureValue");
                     nodeST.setAttribute("_length", dataItem.getLength());
                     break;
@@ -404,7 +404,7 @@ public class ASTToCobol {
                 } else {
                     if (dataItem.isSigned()) {
                         if (dataItem.getPrecision() <= 7) {
-                            _log.warn("One byte integer converted to PIC X(1). Item=" + dataItem);
+                            _log.warn("One byte integer translated to PIC X(1). Item=" + dataItem);
                             StringTemplate nodeST = _stgGroup.getInstanceOf("characterPictureValue");
                             nodeST.setAttribute("_length", 1);
                             return nodeST;

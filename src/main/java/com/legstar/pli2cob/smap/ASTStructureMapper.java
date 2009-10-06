@@ -20,7 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import com.legstar.pli2cob.PLIStructureLexer;
 import com.legstar.pli2cob.PLIStructureParser;
 import com.legstar.pli2cob.Pli2CobContext;
-import com.legstar.pli2cob.PLIStructureParser.script_return;
+import com.legstar.pli2cob.PLIStructureParser.plicode_return;
 import com.legstar.pli2cob.model.PLIDataItem;
 
 /**
@@ -31,7 +31,7 @@ import com.legstar.pli2cob.model.PLIDataItem;
  * be needed.
  * <p/>
  * If requested, it sill insert padding characters where needed in a structure in order
- * for the converted COBOL structure to map exactly the same data items in memory
+ * for the translated COBOL structure to map exactly the same data items in memory
  * as the original PLI structure.
  * <p/>
  * Padding characters result in new logical AST nodes in the Abstract Syntax Tree.
@@ -401,12 +401,12 @@ public class ASTStructureMapper {
             final int padding) throws StructureMappingException {
 
         try {
-            String source = String.format("dcl %1$d * char(%2$d)", physicalLevel, padding);
+            String source = String.format("dcl %1$d * char(%2$d);", physicalLevel, padding);
             PLIStructureLexer lexer = new PLIStructureLexer(
                     new ANTLRReaderStream(new StringReader(source)));
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             PLIStructureParser parser = new PLIStructureParser(tokens);
-            script_return parserResult = parser.script();
+            plicode_return parserResult = parser.plicode();
             return parserResult.getTree();
         } catch (IOException e) {
             throw new StructureMappingException(e);

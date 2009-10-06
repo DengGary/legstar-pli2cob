@@ -12,21 +12,21 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.legstar.pli2cob.PLIStructureParser.script_return;
+import com.legstar.pli2cob.PLIStructureParser.plicode_return;
 import com.legstar.pli2cob.smap.ASTStructureMapper;
 import com.legstar.pli2cob.smap.StructureMappingException;
 
 /**
- * Implements a PLI Structure to COBOL converter.
+ * Implements a PLI Structure to COBOL translator.
  * <p/>
  * There are 4 steps involved:
  * <ul>
  * <li>Cleaning the source from non PLI Structure characters</li>
  * <li>Lexing the source to extract meaningful keywords</li>
  * <li>Parsing keywords to extract meaningful PLI statements</li>
- * <li>Converting PLI statements to COBOL equivalents</li>
+ * <li>Translating PLI statements to COBOL equivalents</li>
  * </ul>
- * This is the API made available to programmatically invoke the PL/I to COBOL converter.
+ * This is the API made available to programmatically invoke the PL/I to COBOL translator.
  * 
  * 
  */
@@ -66,7 +66,7 @@ public class PLIStructureToCobol {
             PLIStructureParsingException,
             CobolFormatException,
             PLIStructureReadingException {
-        return convert(map(normalize(parse(lexify(clean(pliSource))))));
+        return translate(map(normalize(parse(lexify(clean(pliSource))))));
     }
 
 
@@ -120,7 +120,7 @@ public class PLIStructureToCobol {
         String errorMessage = "Parsing token stream failed.";
         try {
             PLIStructureParser parser = new PLIStructureParser(tokens);
-            script_return parserResult = parser.script();
+            plicode_return parserResult = parser.plicode();
             if (parser.getNumberOfSyntaxErrors() != 0 || parserResult == null) {
                 _log.error(errorMessage);
                 throw (new PLIStructureParsingException(errorMessage));
@@ -170,14 +170,14 @@ public class PLIStructureToCobol {
      * @return a PLI source
      * @throws CobolFormatException if formatting fails
      */
-    public String convert(final CommonTree ast) throws CobolFormatException {
+    public String translate(final CommonTree ast) throws CobolFormatException {
         if (_log.isDebugEnabled()) {
             debug("Normalized abstract syntax tree:", ast);
         }
-        String errorMessage = "Converting abstract syntax tree: " + ast + " failed.";
+        String errorMessage = "Translating abstract syntax tree: " + ast + " failed.";
         try {
-            ASTToCobol converter = new ASTToCobol(getContext());
-            String cobolSource = converter.convert(ast);
+            ASTToCobol translator = new ASTToCobol(getContext());
+            String cobolSource = translator.translate(ast);
             if (_log.isDebugEnabled()) {
                 debug("COBOL structure produced:", cobolSource);
             }
