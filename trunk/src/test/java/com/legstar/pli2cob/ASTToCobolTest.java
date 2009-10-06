@@ -2,7 +2,7 @@ package com.legstar.pli2cob;
 
 
 /**
- * Test the AST to COBOL converter.
+ * Test the AST to COBOL translator.
  *
  */
 public class ASTToCobolTest extends AbstractTester {
@@ -12,7 +12,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testGroupItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 Group;",
 
                 "      *" + '\n'
@@ -27,7 +27,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testCharacterItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 Last char(20);",
 
                 "      *" + '\n'
@@ -42,7 +42,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testCharacterVaryingItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 Last char(20) varying;",
 
                 "      *" + '\n'
@@ -60,7 +60,7 @@ public class ASTToCobolTest extends AbstractTester {
      */
     public void testCharacterVaryingz() throws CobolFormatException {
         try {
-            convertCheck(
+            translateCheck(
                     "Declare 1 Last char(20) varyingz;",
 
                     "      *" + '\n'
@@ -85,7 +85,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testGraphicItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 Last graphic(20);",
 
                 "      *" + '\n'
@@ -100,7 +100,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testWidecharItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 Last widechar(20);",
 
                 "      *" + '\n'
@@ -116,7 +116,7 @@ public class ASTToCobolTest extends AbstractTester {
      */
     public void testBitItemNot8Multiple() throws CobolFormatException {
         try {
-            convertCheck(
+            translateCheck(
                     "Declare 1 Last bit(20);",
 
                     "      *" + '\n'
@@ -144,7 +144,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testBitItem8Multiple() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 Last bit(32);",
 
                 "      *" + '\n'
@@ -159,7 +159,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testPictureAlphabeticItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 Last pic '(5)A9XX';",
 
                 "      *" + '\n'
@@ -174,7 +174,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testPictureNumericItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 Last pic 'ZZV(3)9';",
 
                 "      *" + '\n'
@@ -189,7 +189,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testPictureOverpunchItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 Last PIC '(5)9V(2)9T';",
 
                 "      *" + '\n'
@@ -197,7 +197,7 @@ public class ASTToCobolTest extends AbstractTester {
                 + "      *" + '\n'
                 + "       01 Last PIC 9(5)V9(2)9." + '\n'
                 + "" + '\n');
-        convertCheck(
+        translateCheck(
                 "Declare 1 Last PIC 'T(4)9V(3)9';",
 
                 "      *" + '\n'
@@ -205,7 +205,7 @@ public class ASTToCobolTest extends AbstractTester {
                 + "      *" + '\n'
                 + "       01 Last PIC 99(4)V9(3) LEADING." + '\n'
                 + "" + '\n');
-        convertCheck(
+        translateCheck(
                 "Declare 1 Last PIC '(5)9V(3)9S';",
 
                 "      *" + '\n'
@@ -213,7 +213,7 @@ public class ASTToCobolTest extends AbstractTester {
                 + "      *" + '\n'
                 + "       01 Last PIC S9(5)V9(3) SIGN SEPARATE." + '\n'
                 + "" + '\n');
-        convertCheck(
+        translateCheck(
                 "Declare 1 Last PIC 'S(5)9V(3)9';",
 
                 "      *" + '\n'
@@ -228,7 +228,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFloatDecimalItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A float dec(6);",
 
                 "      *" + '\n'
@@ -243,7 +243,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testDoubleDecimalItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A float dec(16);",
 
                 "      *" + '\n'
@@ -259,7 +259,7 @@ public class ASTToCobolTest extends AbstractTester {
      */
     public void testFloatDecimalItemTooLarge() throws CobolFormatException {
         try {
-            convertCheck(
+            translateCheck(
                     "Declare 1 A float dec(20);",
 
                     "      *" + '\n'
@@ -288,7 +288,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFloatBinaryItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A float bin(21);",
 
                 "      *" + '\n'
@@ -303,7 +303,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testDoubleBinaryItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A float bin(53);",
 
                 "      *" + '\n'
@@ -318,7 +318,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFixedDecimalItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A fixed dec(10,2);",
 
                 "      *" + '\n'
@@ -333,7 +333,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFixedDecimalNoDecimalsItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A fixed dec(10);",
 
                 "      *" + '\n'
@@ -348,7 +348,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFixedBinarySignedTinyItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A fixed bin(7);",
 
                 "      *" + '\n'
@@ -363,7 +363,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFixedBinarySignedShortItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A fixed bin(15);",
 
                 "      *" + '\n'
@@ -378,7 +378,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFixedBinarySignedIntegerItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A fixed bin(31);",
 
                 "      *" + '\n'
@@ -393,7 +393,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFixedBinarySignedLongItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A fixed bin(63);",
 
                 "      *" + '\n'
@@ -408,7 +408,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFixedBinaryUnsignedTinyItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A fixed bin(8) unsigned;",
 
                 "      *" + '\n'
@@ -423,7 +423,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFixedBinaryUnsignedShortItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A fixed bin(16) unsigned;",
 
                 "      *" + '\n'
@@ -438,7 +438,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFixedBinaryUnsignedIntegerItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A fixed bin(32) unsigned;",
 
                 "      *" + '\n'
@@ -453,7 +453,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testFixedBinaryUnsignedLongItem() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 A fixed bin(64) unsigned;",
 
                 "      *" + '\n'
@@ -468,7 +468,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testArraySingleDimension() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "declare List fixed decimal(3) dimension(8);",
 
                 "      *" + '\n'
@@ -483,7 +483,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testArrayLowerBoundDimension() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "declare List_A dimension(4:11);",
 
                 "      *" + '\n'
@@ -499,7 +499,7 @@ public class ASTToCobolTest extends AbstractTester {
      */
     public void testArrayUnsupportedLowerBoundDimension() throws CobolFormatException {
         try {
-            convertCheck(
+            translateCheck(
                     "declare List_A dimension(4 refer(X):11);",
 
                     "      *" + '\n'
@@ -525,7 +525,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testArrayVariableUpperBoundDimension() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "declare List_B dimension(1:11 refer(X));",
 
                 "      *" + '\n'
@@ -540,7 +540,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testArrayMultipleDimensions() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "declare Table (4,2) fixed dec (3);",
 
                 "      *" + '\n'
@@ -555,7 +555,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testSingleBranchStructure() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 Payroll, 4 Name, 5 Last char(20);",
 
                 "      *" + '\n'
@@ -572,7 +572,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testMultipleBranchStructure() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "declare 1 Payroll, /* major structure name */"
                 + " 2 Name, /* minor structure name */"
                 + "     3 Last char(20), /* elementary name */"
@@ -605,11 +605,11 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws Exception if something goes wrong
      */
     public void testFormatCobolLevel() throws Exception {
-        ASTToCobol converter = new ASTToCobol(new Pli2CobContext());
-        assertEquals("01", converter.formatLevel(1));
-        assertEquals("12", converter.formatLevel(12));
+        ASTToCobol translator = new ASTToCobol(new Pli2CobContext());
+        assertEquals("01", translator.formatLevel(1));
+        assertEquals("12", translator.formatLevel(12));
         try {
-            assertEquals("12", converter.formatLevel(145));
+            assertEquals("12", translator.formatLevel(145));
             fail();
         } catch (CobolFormatException e) {
             assertEquals("Level 145 is invalid for COBOL", e.getMessage());
@@ -621,11 +621,11 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws Exception if something goes wrong
      */
     public void testFormatCobolName() throws Exception {
-        ASTToCobol converter = new ASTToCobol(new Pli2CobContext());
-        assertEquals("to-5z", converter.formatCobolName("to_5z"));
+        ASTToCobol translator = new ASTToCobol(new Pli2CobContext());
+        assertEquals("to-5z", translator.formatCobolName("to_5z"));
         assertEquals("a12345678901234567890123456789",
-                converter.formatCobolName("a123456789012345678901234567890"));
-        assertEquals("to5z", converter.formatCobolName("to5z"));
+                translator.formatCobolName("a123456789012345678901234567890"));
+        assertEquals("to5z", translator.formatCobolName("to5z"));
     }
 
     /**
@@ -633,7 +633,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testStringInitial() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "DCL BASD_STRUC_ID CHAR(4) STATIC INIT('BASD');",
 
                 "      *" + '\n'
@@ -648,8 +648,8 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testNumericInitial() throws CobolFormatException {
-        convertCheck(
-                "DCL BASD_LENGTH_CURRENT FIXED BIN(31) INIT(32)",
+        translateCheck(
+                "DCL BASD_LENGTH_CURRENT FIXED BIN(31) INIT(32);",
 
                 "      *" + '\n'
                 + "      * Generated by legstar-pli2cob" + '\n'
@@ -663,8 +663,8 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testAsterisk() throws CobolFormatException {
-        convertCheck(
-                "Declare 1 Client, 2 * pic '999999'",
+        translateCheck(
+                "Declare 1 Client, 2 * pic '999999';",
 
                 "      *" + '\n'
                 + "      * Generated by legstar-pli2cob" + '\n'
@@ -679,7 +679,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testConflictingName() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "dcl 1 Initial char(1);",
 
                 "      *" + '\n'
@@ -694,7 +694,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testSimpleUnion() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "dcl 1 * union, 2 b3 bit(32), 2 b4 bit(16);",
 
                 "      *" + '\n'
@@ -711,7 +711,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testComplexUnion() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "dcl 1 NT2 union static,"
                 + "   2 Numeric_translate_table2 char(256),"
                 + "   2 Alpha_translate_table2 char(256),"
@@ -739,7 +739,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testProblematicUnions() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "dcl 1 a union,"                       
                + "2 b(2) fixed binary(31),"
                + "2 c fixed binary(15);",
@@ -758,7 +758,7 @@ public class ASTToCobolTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testProblematicUnions2() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "dcl 1 a based,"                       
                + "2 b fixed binary(31),"
                + "2 c union,"
@@ -784,8 +784,8 @@ public class ASTToCobolTest extends AbstractTester {
     public void testFailonerror() throws CobolFormatException {
         Pli2CobContext context = new Pli2CobContext();
         context.setFailonerror(false);
-        ASTToCobol converter = new ASTToCobol(context);
-        String cobol = converter.convert(parseAndNormalize("dcl A bit(1);"));
+        ASTToCobol translator = new ASTToCobol(context);
+        String cobol = translator.translate(parseAndNormalize("dcl A bit(1);"));
         assertEquals("      *" + '\n'
                 + "      * Generated by legstar-pli2cob" + '\n'
                 + "      *" + '\n', cobol);

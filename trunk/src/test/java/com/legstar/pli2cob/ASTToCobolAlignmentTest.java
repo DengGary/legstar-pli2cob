@@ -11,7 +11,7 @@ public class ASTToCobolAlignmentTest extends AbstractTester {
      * @throws CobolFormatException if conversion fails
      */
     public void testAligmentDetection() throws CobolFormatException {
-        convertCheck(
+        translateCheck(
                 "Declare 1 ClientID bin fixed(31) unaligned;",
 
                 "      *" + '\n'

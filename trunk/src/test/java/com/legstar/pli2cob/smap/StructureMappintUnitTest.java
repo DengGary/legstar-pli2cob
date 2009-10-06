@@ -229,7 +229,7 @@ public class StructureMappintUnitTest extends AbstractTester {
 
         StructureMappingUnit unitN = new StructureMappingUnit(
                 unitPQ,
-                getPLIDataItem("dcl 1 R float decimal(2)"));
+                getPLIDataItem("dcl 1 R float decimal(2);"));
         assertEquals(AlignmentRequirement.FULLWORD, unitN.getAlignmentRequirement());
         assertEquals(12, unitN.getByteLength());
         assertEquals(1, unitN.getPadding());

@@ -1,9 +1,52 @@
 lexer grammar PLIStructureLexer;
 
 /*------------------------------------------------------------------
- * Target java package
+ * Java overrides
  *------------------------------------------------------------------*/
-@header { package com.legstar.pli2cob; }
+@header {
+package com.legstar.pli2cob;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+}
+
+@members {
+    /** Logger. */
+    private final Log _log = LogFactory.getLog(getClass());
+
+    /** {@inheritDoc} */
+    public String getErrorMessage(final RecognitionException e, final String[] tokenNames) {
+        if (_log.isDebugEnabled()) {
+            List < ? > stack = getRuleInvocationStack(e, this.getClass().getName());
+            String msg = null;
+            if (e instanceof NoViableAltException) {
+                NoViableAltException nvae = (NoViableAltException) e;
+                msg = super.getErrorMessage(e, tokenNames)
+                    + " (decision=" + nvae.decisionNumber
+                    + " state=" + nvae.stateNumber + ")"
+                    + " decision=<<" + nvae.grammarDecisionDescription + ">>";
+            } else {
+               msg = super.getErrorMessage(e, tokenNames);
+            }
+            return msg + ". Stack=" + stack;
+        } else {
+            return super.getErrorMessage(e, tokenNames);
+        }
+    }
+
+    /** {@inheritDoc} */
+    public String getTokenErrorDisplay(final Token t) {
+        if (_log.isDebugEnabled()) {
+            return t.toString();
+        } else {
+            return super.getTokenErrorDisplay(t);
+        }
+    }
+
+    /** {@inheritDoc} */
+    public void emitErrorMessage(final String msg) {
+        _log.error(msg);
+    }
+}
 
 /*------------------------------------------------------------------
  * Supported keywords
@@ -57,11 +100,14 @@ SIGNED_INTEGER: SIGN UNSIGNED_INTEGER;
 UNSIGNED_INTEGER: DIGIT+;
 FLOAT: (UNSIGNED_INTEGER | SIGNED_INTEGER) (FRACTION EXPONENT? | EXPONENT);
 ASTERISK: '*';
+EQUALS: '=';
+LT: '<';
+GT: '>';
 
 /*------------------------------------------------------------------
  * Whitespaces, newlines and comments
  *------------------------------------------------------------------*/
-WHITESPACE: SPACE+ { $channel = HIDDEN; };
+WHITESPACE: SPACE+ { skip(); };
 NEWLINE: ('\r'? '\n')+ { skip(); };
 MULTI_COMMENT options { greedy = false; }
   : '/*' .* '*/' NEWLINE? { skip(); };
@@ -85,4 +131,3 @@ fragment QUOTE: '"';
 fragment APOSTROPHE: '\'';
 // Note that SYMBOL does not include the quote and double-quote characters.
 fragment SYMBOL: '!' | '#'..'&' | '('..'/' | ':'..'@' | '['..'`' | '{'..'~';
-

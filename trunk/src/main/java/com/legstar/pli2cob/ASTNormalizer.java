@@ -68,9 +68,6 @@ public class ASTNormalizer {
      * that is higher. Knowing that the root is higher than anyone, this will always
      * find a place to insert the new node.
      * <p/>
-     * The root node, if it is not a data item (ie is Nil), has an artificial level of
-     * 0 which is lower than any real data item level.
-     * <p/>
      * When a parent/child relationship is identified, propagates inherited attributes.
      * @param adaptor the tree navigator
      * @param currentNode the current data item node
@@ -81,15 +78,31 @@ public class ASTNormalizer {
             final Object currentNode,
             final Object newNode) {
         Object parentNode = currentNode;
-        int parentLevel = ASTUtils.getAttributeIntValue(adaptor, parentNode, PLIStructureParser.LEVEL, 0);
-        int newDataItemLevel = ASTUtils.getAttributeIntValue(adaptor, newNode, PLIStructureParser.LEVEL, 0);
+        int parentLevel = getLevel(adaptor, parentNode);
+        int newDataItemLevel = getLevel(adaptor, newNode);
         while (parentLevel >= newDataItemLevel) {
             parentNode = adaptor.getParent(parentNode);
-            parentLevel = ASTUtils.getAttributeIntValue(adaptor, parentNode, PLIStructureParser.LEVEL, 0);
+            parentLevel = getLevel(adaptor, parentNode);
         }
         adaptor.addChild(parentNode, newNode);
         propagateAlignment(adaptor, parentNode, newNode);
         propagateRefines(adaptor, parentNode, newNode);
+    }
+
+    /**
+     * Determines a node level. Might not be a node attribute so we should provide
+     * defaults.
+     * <p/>
+     * The root node, if it is not a data item (ie is Nil), has an artificial level of
+     * 0 which is lower than any real data item level.
+     * @param adaptor the tree navigator
+     * @param node the data item node
+     * @return the node PL/I level
+     */
+    private int getLevel(final TreeAdaptor adaptor, final Object node) {
+        return adaptor.isNil(node)
+        ? ASTUtils.getAttributeIntValue(adaptor, node, PLIStructureParser.LEVEL, 0)
+                : ASTUtils.getAttributeIntValue(adaptor, node, PLIStructureParser.LEVEL, 1);
     }
 
     /**
@@ -118,7 +131,7 @@ public class ASTNormalizer {
         }
 
     }
-    
+
     /**
      * When a child node is added to a parent which happens to be a union, then the
      * child node is marked as redefining the first child of that union. This does
@@ -136,7 +149,7 @@ public class ASTNormalizer {
         if (unionNode != null) {
             String redefinesName = ASTUtils.getAttributeStringValue(
                     adaptor, parentNode, PLIStructureParser.REDEFINES, null);
-          
+
             if (redefinesName == null) {
 
                 /* The first union child marks the union with its name to be propagated
@@ -148,13 +161,13 @@ public class ASTNormalizer {
                         PLIStructureParser.DATA_ITEM_NAME, redefinesName);
 
             } else {
-                
+
                 /* Subsequent children are marked with the first child name (since they 
                  * redefine its memory location)*/
                 ASTUtils.setAttribute(adaptor, childNode, PLIStructureParser.REDEFINES,
                         PLIStructureParser.DATA_ITEM_NAME, redefinesName);
             }
-            
+
         }
     }
 

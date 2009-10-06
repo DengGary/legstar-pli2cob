@@ -14,7 +14,7 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.legstar.pli2cob.PLIStructureParser.script_return;
+import com.legstar.pli2cob.PLIStructureParser.plicode_return;
 import com.legstar.pli2cob.model.PLIDataItem;
 
 import junit.framework.TestCase;
@@ -60,7 +60,7 @@ public abstract class AbstractTester extends TestCase {
         try {
             CommonTokenStream tokens = lexify(source);
             PLIStructureParser parser = new PLIStructureParser(tokens);
-            script_return parserResult = parser.script();
+            plicode_return parserResult = parser.plicode();
             assertEquals(0, parser.getNumberOfSyntaxErrors());
             assertTrue(parserResult != null);
             return (CommonTree) parserResult.getTree();
@@ -87,11 +87,11 @@ public abstract class AbstractTester extends TestCase {
      * @param expected the expected sub graph
      * @throws CobolFormatException if conversion fails
      */
-    public void convertCheck(
+    public void translateCheck(
             final String source,
             final String expected) throws CobolFormatException {
-        ASTToCobol converter = new ASTToCobol(new Pli2CobContext());
-        String cobol = converter.convert(parseAndNormalize(source));
+        ASTToCobol translator = new ASTToCobol(new Pli2CobContext());
+        String cobol = translator.translate(parseAndNormalize(source));
         _log.debug(cobol);
         assertEquals(expected, cobol);
     }
