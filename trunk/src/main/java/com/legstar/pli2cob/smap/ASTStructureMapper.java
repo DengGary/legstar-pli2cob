@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2009 LegSem.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     LegSem - initial API and implementation
+ ******************************************************************************/
 package com.legstar.pli2cob.smap;
 
 import java.io.IOException;
@@ -18,9 +28,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.legstar.pli2cob.PLIStructureLexer;
+import com.legstar.pli2cob.PLIStructureLexerImpl;
 import com.legstar.pli2cob.PLIStructureParser;
+import com.legstar.pli2cob.PLIStructureParserImpl;
 import com.legstar.pli2cob.Pli2CobContext;
-import com.legstar.pli2cob.PLIStructureParser.plicode_return;
+import com.legstar.pli2cob.PLIStructureParser.pl1code_return;
 import com.legstar.pli2cob.model.PLIDataItem;
 
 /**
@@ -60,7 +72,7 @@ public class ASTStructureMapper {
     }
 
     /**
-     * Takes a normalized (hierarchical) AST produced by {@link ASTNormalizer} and inserts
+     * Takes an enhanced AST produced by {@link PLIStructureEnhancer} and inserts
      * padding nodes where needed to satisfy alignment requirements.
      * <p/>
      * The input AST might contain a single root statement or multiple root statements under
@@ -341,8 +353,8 @@ public class ASTStructureMapper {
     public void addPaddingNodes(
             final TreeAdaptor adaptor,
             final Map < Object, Integer> paddingNodes) throws StructureMappingException {
-        for (Object insertionNode : paddingNodes.keySet()) {
-            addPaddingNode(adaptor, insertionNode, paddingNodes.get(insertionNode));
+        for (Map.Entry < Object, Integer> entry : paddingNodes.entrySet()) {
+            addPaddingNode(adaptor, entry.getKey(), entry.getValue());
         }
     }
     
@@ -402,11 +414,11 @@ public class ASTStructureMapper {
 
         try {
             String source = String.format("dcl %1$d * char(%2$d);", physicalLevel, padding);
-            PLIStructureLexer lexer = new PLIStructureLexer(
+            PLIStructureLexer lexer = new PLIStructureLexerImpl(
                     new ANTLRReaderStream(new StringReader(source)));
             CommonTokenStream tokens = new CommonTokenStream(lexer);
-            PLIStructureParser parser = new PLIStructureParser(tokens);
-            plicode_return parserResult = parser.plicode();
+            PLIStructureParser parser = new PLIStructureParserImpl(tokens);
+            pl1code_return parserResult = parser.pl1code();
             return parserResult.getTree();
         } catch (IOException e) {
             throw new StructureMappingException(e);

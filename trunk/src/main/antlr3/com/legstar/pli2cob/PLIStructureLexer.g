@@ -1,51 +1,33 @@
 lexer grammar PLIStructureLexer;
+/*------------------------------------------------------------------
+ *  LegStar PL/I structures grammar
+ * --------------------------------
+ *  Copyright (C) 2009 LegSem
+ *  
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *   
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ *  02110-1301  USA
+*------------------------------------------------------------------*/
+/*------------------------------------------------------------------
+ * Lexer rules
+ *------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------
  * Java overrides
  *------------------------------------------------------------------*/
 @header {
 package com.legstar.pli2cob;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-}
-
-@members {
-    /** Logger. */
-    private final Log _log = LogFactory.getLog(getClass());
-
-    /** {@inheritDoc} */
-    public String getErrorMessage(final RecognitionException e, final String[] tokenNames) {
-        if (_log.isDebugEnabled()) {
-            List < ? > stack = getRuleInvocationStack(e, this.getClass().getName());
-            String msg = null;
-            if (e instanceof NoViableAltException) {
-                NoViableAltException nvae = (NoViableAltException) e;
-                msg = super.getErrorMessage(e, tokenNames)
-                    + " (decision=" + nvae.decisionNumber
-                    + " state=" + nvae.stateNumber + ")"
-                    + " decision=<<" + nvae.grammarDecisionDescription + ">>";
-            } else {
-               msg = super.getErrorMessage(e, tokenNames);
-            }
-            return msg + ". Stack=" + stack;
-        } else {
-            return super.getErrorMessage(e, tokenNames);
-        }
-    }
-
-    /** {@inheritDoc} */
-    public String getTokenErrorDisplay(final Token t) {
-        if (_log.isDebugEnabled()) {
-            return t.toString();
-        } else {
-            return super.getTokenErrorDisplay(t);
-        }
-    }
-
-    /** {@inheritDoc} */
-    public void emitErrorMessage(final String msg) {
-        _log.error(msg);
-    }
 }
 
 /*------------------------------------------------------------------

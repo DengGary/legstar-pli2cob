@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2009 LegSem.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     LegSem - initial API and implementation
+ ******************************************************************************/
 package com.legstar.pli2cob.model;
 
 import java.util.ArrayList;
@@ -80,9 +90,6 @@ public class PLIDataItem implements IMappable {
     /** Item is a union declaration.*/
     private boolean _isUnion = false;
 
-    /** Name of the first child in union. */
-    private String _redefines;
-
     /** A pattern to detect repetition factor.*/
     private static final Pattern REPETITION_FACTOR_PATTERN = Pattern.compile("\\(\\d+\\)");
 
@@ -126,7 +133,6 @@ public class PLIDataItem implements IMappable {
         setAligned(adaptor, astItem);
         setDimensions(adaptor, astItem);
         setUnion(adaptor, astItem);
-        setRedefines(adaptor, astItem);
     }
 
     /**
@@ -222,13 +228,6 @@ public class PLIDataItem implements IMappable {
      */
     public boolean isUnion() {
         return _isUnion;
-    }
-
-    /**
-     * @return the name of the first child in a union
-     */
-    public String getRedefines() {
-        return _redefines;
     }
 
     /**
@@ -722,22 +721,6 @@ public class PLIDataItem implements IMappable {
                 adaptor, astItem, PLIStructureParser.UNION)) ? false : true;
     }
 
-    /**
-     * Set the name of the first child in a union.
-     * <p/>
-     * This attribute is added by <code>ASTNormalizer</code> to the union itself
-     * as well as all children except the first one.
-     * <p/>
-     * The semantic is identical to COBOL REDEFINES.
-     *  
-     * @param adaptor the tree navigator
-     * @param astItem the data item abstract syntax subtree
-     */
-    private void setRedefines(final TreeAdaptor adaptor, final Object astItem) {
-        _redefines = ASTUtils.getAttributeStringValue(
-                adaptor, astItem, PLIStructureParser.REDEFINES, null);
-    }
-
     /** Floating point or fixed numerics. */
     public enum Scale { FLOAT, FIXED };
 
@@ -810,9 +793,6 @@ public class PLIDataItem implements IMappable {
         if (isUnion()) {
             sb.append(", ");
             sb.append("union : " + isUnion());
-        } else if (getRedefines() != null) {
-            sb.append(", ");
-            sb.append("redefines : " + getRedefines());
         }
         sb.append(", ");
         sb.append("aligned : " + isAligned());

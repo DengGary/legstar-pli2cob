@@ -1,8 +1,14 @@
+/*******************************************************************************
+ * Copyright (c) 2009 LegSem.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     LegSem - initial API and implementation
+ ******************************************************************************/
 package com.legstar.pli2cob;
-
-import org.apache.commons.logging.Log;
-
-import com.legstar.pli2cob.model.PLIDataItem;
 
 /**
  * This class gathers execution parameters for the PLI to COBOL utility.
@@ -10,9 +16,6 @@ import com.legstar.pli2cob.model.PLIDataItem;
  */
 public class Pli2CobContext {
 
-    /** Indicates whether parsing errors will fail the execution; defaults to true.*/
-    private boolean _failonerror = true;
-    
     /** 
      * Indicates whether additional padding bytes should be added to COBOL
      * structures to accommodate PLI hidden alignment mapping bytes.
@@ -25,40 +28,6 @@ public class Pli2CobContext {
      * doubleword boundaries.
      * */
     private boolean _synchang = false;
-
-    /**
-     * Depending on parameters this will throw an exception or log a warning.
-     * @param e the parsing exception
-     * @param dataItem the data item which triggered the exception
-     * @param log the logger to use for reporting
-     * @throws CobolFormatException if error must stop execution
-     */
-    public void processError(
-            final CobolFormatException e,
-            final PLIDataItem dataItem,
-            final Log log) throws CobolFormatException {
-        String errorMessage = e.getMessage() + ". Item=" + dataItem;
-        if (isFailonerror()) {
-            log.error(errorMessage);
-            throw new CobolFormatException(errorMessage, e);
-        } else {
-            log.warn(errorMessage);
-        }
-    }
-
-    /**
-     * @return whether parsing errors will fail the execution or generate warnings
-     */
-    public boolean isFailonerror() {
-        return _failonerror;
-    }
-
-    /**
-     * @param failonerror whether parsing errors will fail the execution or generate warnings
-     */
-    public void setFailonerror(final boolean failonerror) {
-        _failonerror = failonerror;
-    }
 
     /**
      * @return whether additional padding bytes should be added to COBOL
