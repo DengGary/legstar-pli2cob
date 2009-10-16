@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2009 LegSem.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     LegSem - initial API and implementation
+ ******************************************************************************/
 package com.legstar.pli2cob.model;
 
 import org.antlr.runtime.tree.CommonTree;
@@ -19,7 +29,7 @@ public class PLIDataItemTest extends AbstractTester {
      */
     public void testNumericLength() {
         
-        parseCheck("dcl 1 A bin fixed(5,2);",
+        parseItemAndCheck("dcl 1 A bin fixed(5,2);",
                 "[level : 1,"
                 + " name : A,"
                 + " qualifiedName : parent.A,"
@@ -31,7 +41,7 @@ public class PLIDataItemTest extends AbstractTester {
                 + " length : 1,"
                 + " aligned : true]");
 
-        parseCheck("dcl 1 A bin fixed(16,2) unsigned;",
+        parseItemAndCheck("dcl 1 A bin fixed(16,2) unsigned;",
                 "[level : 1,"
                 + " name : A,"
                 + " qualifiedName : parent.A,"
@@ -43,7 +53,7 @@ public class PLIDataItemTest extends AbstractTester {
                 + " length : 2,"
                 + " aligned : true]");
 
-        parseCheck("dcl 1 A dec fixed(16,2);",
+        parseItemAndCheck("dcl 1 A dec fixed(16,2);",
                 "[level : 1,"
                 + " name : A,"
                 + " qualifiedName : parent.A,"
@@ -55,7 +65,7 @@ public class PLIDataItemTest extends AbstractTester {
                 + " length : 9,"
                 + " aligned : true]");
 
-        parseCheck("dcl 1 A dec float(3);",
+        parseItemAndCheck("dcl 1 A dec float(3);",
                 "[level : 1,"
                 + " name : A,"
                 + " qualifiedName : parent.A,"
@@ -67,7 +77,7 @@ public class PLIDataItemTest extends AbstractTester {
                 + " length : 4,"
                 + " aligned : true]");
 
-        parseCheck("dcl 1 A bin float(42);",
+        parseItemAndCheck("dcl 1 A bin float(42);",
                 "[level : 1,"
                 + " name : A,"
                 + " qualifiedName : parent.A,"
@@ -84,7 +94,7 @@ public class PLIDataItemTest extends AbstractTester {
      * Check explicit and default alignment attributes.
      */
     public void testAligned() {
-        parseCheck("dcl 1 A char(1);",
+        parseItemAndCheck("dcl 1 A char(1);",
                 "[level : 1,"
                 + " name : A,"
                 + " qualifiedName : parent.A,"
@@ -93,7 +103,7 @@ public class PLIDataItemTest extends AbstractTester {
                 + " varying : NONVARYING,"
                 + " aligned : false]");
 
-        parseCheck("dcl 1 A char(1) aligned;",
+        parseItemAndCheck("dcl 1 A char(1) aligned;",
                 "[level : 1,"
                 + " name : A,"
                 + " qualifiedName : parent.A,"
@@ -102,7 +112,7 @@ public class PLIDataItemTest extends AbstractTester {
                 + " varying : NONVARYING,"
                 + " aligned : true]");
 
-        parseCheck("dcl 1 A bin fixed(5,2);",
+        parseItemAndCheck("dcl 1 A bin fixed(5,2);",
                 "[level : 1,"
                 + " name : A,"
                 + " qualifiedName : parent.A,"
@@ -114,7 +124,7 @@ public class PLIDataItemTest extends AbstractTester {
                 + " length : 1,"
                 + " aligned : true]");
 
-        parseCheck("dcl 1 A bin fixed(5,2) aligned;",
+        parseItemAndCheck("dcl 1 A bin fixed(5,2) aligned;",
                 "[level : 1,"
                 + " name : A,"
                 + " qualifiedName : parent.A,"
@@ -126,7 +136,7 @@ public class PLIDataItemTest extends AbstractTester {
                 + " length : 1,"
                 + " aligned : true]");
 
-        parseCheck("dcl 1 A bin fixed(5,2) unaligned;",
+        parseItemAndCheck("dcl 1 A bin fixed(5,2) unaligned;",
                 "[level : 1,"
                 + " name : A,"
                 + " qualifiedName : parent.A,"
@@ -234,7 +244,7 @@ public class PLIDataItemTest extends AbstractTester {
      * @param source the source fragment
      * @param expected the expected data item
      */
-    private void parseCheck(final String source, final String expected) {
+    private void parseItemAndCheck(final String source, final String expected) {
         assertEquals(expected, parseItem(source).toString());
     }
 

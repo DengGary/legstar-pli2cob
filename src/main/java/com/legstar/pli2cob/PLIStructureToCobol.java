@@ -1,30 +1,47 @@
+/*******************************************************************************
+ * Copyright (c) 2009 LegSem.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     LegSem - initial API and implementation
+ ******************************************************************************/
 package com.legstar.pli2cob;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 
 import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
+import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.antlr.runtime.tree.DOTTreeGenerator;
+import org.antlr.runtime.tree.TreeNodeStream;
 import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.legstar.pli2cob.PLIStructureParser.plicode_return;
 import com.legstar.pli2cob.smap.ASTStructureMapper;
 import com.legstar.pli2cob.smap.StructureMappingException;
 
 /**
- * Implements a PLI Structure to COBOL translator.
+ * Implements a PL/I Structure to COBOL translator.
  * <p/>
- * There are 4 steps involved:
+ * There are 7 steps involved:
  * <ul>
- * <li>Cleaning the source from non PLI Structure characters</li>
+ * <li>Cleaning the source from non PL/I Structure characters</li>
  * <li>Lexing the source to extract meaningful keywords</li>
- * <li>Parsing keywords to extract meaningful PLI statements</li>
- * <li>Translating PLI statements to COBOL equivalents</li>
+ * <li>Parsing keywords to extract meaningful PL/I statements</li>
+ * <li>Enhancing the AST, which adds attributes and nodes to the AST produced by the previous step</li>
+ * <li>Mapping (if selected) adds filler nodes to account for PL/I special structure mapping algorithm</li>
+ * <li>Emitting COBOL equivalents to the PL/I statements</li>
+ * <li>Formatting COBOL source so that it respects column constraints</li>
  * </ul>
  * This is the API made available to programmatically invoke the PL/I to COBOL translator.
  * 
@@ -32,7 +49,7 @@ import com.legstar.pli2cob.smap.StructureMappingException;
  */
 public class PLIStructureToCobol {
 
-    /** Execution parameters for the PLI to COBOL utility. */
+    /** Execution parameters for the PL/I to COBOL utility. */
     private Pli2CobContext _context;
 
     /** Logger. */
@@ -46,37 +63,40 @@ public class PLIStructureToCobol {
     }
 
     /**
-     * @param context execution parameters for the PLI to COBOL utility
+     * @param context execution parameters for the PL/I to COBOL utility
      */
     public PLIStructureToCobol(final Pli2CobContext context) {
         _context = context;
     }
 
     /**
-     * Execute the transformation from PLI to COBOL.
-     * @param pliSource the PLI source code
+     * Execute the translation from PL/I to COBOL.
+     * @param pliSource the PL/I source code
      * @return the COBOL source code
-     * @throws PLIStructureLexingException if PLI structure is unreadable
+     * @throws PLIStructureLexingException if PL/I structure is unreadable
      * @throws PLIStructureParsingException if source contains unsupported statements
      * @throws CobolFormatException if formatting fails
      * @throws PLIStructureReadingException if source code cannot be read
      */
-    public String execute(
+    public String translate(
             final String pliSource) throws PLIStructureLexingException,
             PLIStructureParsingException,
             CobolFormatException,
             PLIStructureReadingException {
-        return translate(map(normalize(parse(lexify(clean(pliSource))))));
+        return format(emit(map(enhance(parse(lexify(clean(pliSource)))))));
     }
 
 
     /**
-     * Remove any non PLI Structure characters from the source.
+     * Remove any non PL/I Structure characters from the source.
      * @param pliSource the raw source
      * @return a cleaned up source
      * @throws PLIStructureReadingException if source code cannot be read
      */
     public String clean(final String pliSource) throws PLIStructureReadingException {
+        if (_log.isDebugEnabled()) {
+            debug("Cleaning PL/I source code:", pliSource);
+        }
         PLISourceCleaner cleaner = new PLISourceCleaner();
         return cleaner.execute(pliSource);
     }
@@ -85,15 +105,15 @@ public class PLIStructureToCobol {
      * Apply the lexer to produce a token stream from source.
      * @param source the source code
      * @return an antlr token stream
-     * @throws PLIStructureLexingException if PLI structure is unreadable
+     * @throws PLIStructureLexingException if PL/I structure is unreadable
      */
     public CommonTokenStream lexify(final String source) throws PLIStructureLexingException {
         if (_log.isDebugEnabled()) {
-            debug("Lexing source:", source);
+            _log.debug("Lexing PL/I source code");
         }
         String errorMessage = "Lexing failed.";
         try {
-            PLIStructureLexer lex = new PLIStructureLexer(
+            PLIStructureLexer lex = new PLIStructureLexerImpl(
                     new ANTLRReaderStream(new StringReader(source)));
             CommonTokenStream tokens = new CommonTokenStream(lex);
             if (lex.getNumberOfSyntaxErrors() != 0 || tokens == null) {
@@ -119,8 +139,8 @@ public class PLIStructureToCobol {
         }
         String errorMessage = "Parsing token stream failed.";
         try {
-            PLIStructureParser parser = new PLIStructureParser(tokens);
-            plicode_return parserResult = parser.plicode();
+            PLIStructureParser parser = new PLIStructureParserImpl(tokens);
+            PLIStructureParser.pl1code_return parserResult = parser.pl1code();
             if (parser.getNumberOfSyntaxErrors() != 0 || parserResult == null) {
                 _log.error(errorMessage);
                 throw (new PLIStructureParsingException(errorMessage));
@@ -133,28 +153,40 @@ public class PLIStructureToCobol {
     }
 
     /**
-     * Apply Normalizer to produce a normalized abstract syntax tree from source. 
-     * @param ast the abstract syntax tree produced by parser (flat)
-     * @return an antlr abstract syntax tree where nodes are organized in a hierarchy
+     * Apply Enhancer to produce a complete abstract syntax tree from source. 
+     * @param ast the abstract syntax tree produced by parser
+     * @return an antlr abstract syntax tree where nodes got enhanced
+     * @throws PLIStructureParsingException if tree cannot be walked
      */
-    public CommonTree normalize(final CommonTree ast) {
+    public CommonTree enhance(final CommonTree ast) throws PLIStructureParsingException {
         if (_log.isDebugEnabled()) {
-            debug("Flat abstract syntax tree:", ast);
+            debug("Source abstract syntax tree: ", ((ast == null) ? "null" : ast.toStringTree()));
         }
-        ASTNormalizer normalizer = new ASTNormalizer();
-        return normalizer.normalize(ast);
+        if (ast == null) {
+            return ast;
+        }
+        String errorMessage = "Parsing nodes stream failed.";
+        try {
+            TreeNodeStream nodes = new CommonTreeNodeStream(ast);
+            PLIStructureEnhancer enhancer = new PLIStructureEnhancer(nodes);
+            PLIStructureEnhancer.pl1code_return enhancerResult = enhancer.pl1code();
+            return (CommonTree) enhancerResult.getTree();
+        } catch (RecognitionException e) {
+            _log.error(errorMessage, e);
+            throw (new PLIStructureParsingException(e));
+        }
     }
 
     /**
      * Analyzes the PL/I structures mapping. This can produce reports and,
      * if requested, add padding characters where needed in the abstract
-     * syntax tree in order for COBOL to map the PLI structure alignments. 
-     * @param ast the abstract syntax tree produced by normalizer (hierarchy)
+     * syntax tree in order for COBOL to map the PL/I structure alignments. 
+     * @param ast the abstract syntax tree produced by enhancer
      * @return a hierarchical abstract syntax tree with extra padding bytes where needed
      * @throws PLIStructureParsingException if padding algorithm fails
      */
     public CommonTree map(final CommonTree ast) throws PLIStructureParsingException {
-        String errorMessage = "Mapping PLI structures failed.";
+        String errorMessage = "Mapping PL/I structures failed.";
         try {
             ASTStructureMapper mapper = new ASTStructureMapper(getContext());
             return mapper.map(ast);
@@ -165,27 +197,52 @@ public class PLIStructureToCobol {
     }
 
     /**
-     * Final conversion starting from normalized abstract syntax tree. 
-     * @param ast the abstract syntax tree produced by normalizer (hierarchy)
-     * @return a PLI source
+     * Emit COBOL statements from enhanced abstract syntax tree. 
+     * @param ast the abstract syntax tree produced by parser/enhancer/mapper
+     * @return a COBOL source where statements do not necessarily fit in 72 columns
      * @throws CobolFormatException if formatting fails
      */
-    public String translate(final CommonTree ast) throws CobolFormatException {
+    public String emit(final CommonTree ast) throws CobolFormatException {
         if (_log.isDebugEnabled()) {
-            debug("Normalized abstract syntax tree:", ast);
+            debug("Enhanced abstract syntax tree:", ast);
         }
-        String errorMessage = "Translating abstract syntax tree: " + ast + " failed.";
+        if (ast == null) {
+            return "";
+        }
+        String errorMessage = "Emiting COBOL from AST failed.";
         try {
-            ASTToCobol translator = new ASTToCobol(getContext());
-            String cobolSource = translator.translate(ast);
-            if (_log.isDebugEnabled()) {
-                debug("COBOL structure produced:", cobolSource);
-            }
-            return cobolSource;
-        } catch (CobolFormatException e) {
+            TreeNodeStream nodes = new CommonTreeNodeStream(ast);
+            PLIStructureCobolEmitter emitter = new PLIStructureCobolEmitter(nodes);
+            StringTemplateGroup stgGroup = new StringTemplateGroup(
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    getClass().getResourceAsStream(
+                                            "/pli2cob.stg"))));
+            emitter.setTemplateLib(stgGroup);
+            PLIStructureCobolEmitter.pl1code_return r = emitter.pl1code();
+            StringTemplate output = (StringTemplate) r.getTemplate();
+            return output.toString();
+        } catch (RecognitionException e) {
             _log.error(errorMessage, e);
-            throw e;
+            throw (new CobolFormatException(e));
         }
+    }
+
+    /**
+     * Fit COBOL statements in 72 columns.
+     * @param cobolSource the source where statements may not wrap
+     * @return a COBOL source ready for compilation
+     * @throws CobolFormatException if source code cannot be formatted
+     */
+    public String format(final String cobolSource) throws CobolFormatException {
+        if (_log.isDebugEnabled()) {
+            debug("Formatting COBOL source code:", cobolSource);
+        }
+        if (cobolSource == null) {
+            return cobolSource;
+        }
+        CobolFormatter formatter = new CobolFormatter();
+        return formatter.format(new StringReader(cobolSource));
     }
 
     /**
@@ -213,7 +270,7 @@ public class PLIStructureToCobol {
     }
 
     /**
-     * @return the execution parameters for the PLI to COBOL utility
+     * @return the execution parameters for the PL/I to COBOL utility
      */
     public Pli2CobContext getContext() {
         return _context;

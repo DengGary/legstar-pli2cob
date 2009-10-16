@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2009 LegSem.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     LegSem - initial API and implementation
+ ******************************************************************************/
 package com.legstar.pli2cob.task;
 
 import java.io.BufferedReader;
@@ -56,9 +66,6 @@ public class PLIStructureToCobolTask extends Task {
     /** The target directory where cobol files will be created. */
     private File _targetDir;
 
-    /** Indicates whether parsing errors will fail the execution; defaults to true.*/
-    private boolean _failonerror = true;
-
     /** 
      * Indicates whether additional padding bytes should be added to COBOL
      * structures to accommodate PLI hidden alignment mapping bytes.
@@ -93,7 +100,7 @@ public class PLIStructureToCobolTask extends Task {
                 for (int i = 0; i < files.length; i++) {
                     File pliSourceFile = new File(fileset.getDir(getProject()), files[i]);
                     _log.info("Translating PLI file: " + pliSourceFile);
-                    String cobolSource = pli2cob.execute(fileToString(pliSourceFile));
+                    String cobolSource = pli2cob.translate(fileToString(pliSourceFile));
                     File cobolSourceFile = stringToFile(getTargetDir(), pliSourceFile, cobolSource);
                     _log.info("Created COBOL file: " + cobolSourceFile);
                 }
@@ -148,7 +155,6 @@ public class PLIStructureToCobolTask extends Task {
      */
     private Pli2CobContext createContext() {
         Pli2CobContext context = new Pli2CobContext();
-        context.setFailonerror(isFailonerror());
         context.setSyncpad(isSyncpad());
         context.setSynchang(isSynchang());
         return context;
@@ -238,20 +244,6 @@ public class PLIStructureToCobolTask extends Task {
      */
     public void setTargetDir(final File targetDir) {
         _targetDir = targetDir;
-    }
-
-    /**
-     * @return whether parsing errors will fail the execution or generate warnings
-     */
-    public boolean isFailonerror() {
-        return _failonerror;
-    }
-
-    /**
-     * @param failonerror whether parsing errors will fail the execution or generate warnings
-     */
-    public void setFailonerror(final boolean failonerror) {
-        _failonerror = failonerror;
     }
 
     /**

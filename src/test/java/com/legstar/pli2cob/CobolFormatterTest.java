@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2009 LegSem.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     LegSem - initial API and implementation
+ ******************************************************************************/
 package com.legstar.pli2cob;
 import java.io.StringReader;
 
@@ -13,7 +23,7 @@ public class CobolFormatterTest extends AbstractTester {
      * @throws Exception if that fails
      */
     public void testFormat() throws Exception {
-        format(
+        formatAndCheck(
                 "      *" + LS
                 + "      *" + LS
                 + "      *" + LS
@@ -27,23 +37,57 @@ public class CobolFormatterTest extends AbstractTester {
                 + "           02 Rate." + LS
                 + "           03 Regular PIC S9(1)V9(2) PACKED-DECIMAL." + LS
                 + "           03 Overtime PIC S9(1)V9(2) PACKED-DECIMAL." + LS
-                + "" + '\n',
-                "      *" + '\n'
-                + "      *" + '\n'
-                + "      *" + '\n'
-                + "       01 Payroll." + '\n'
-                + "           02 Name." + '\n'
-                + "             03 Last PIC X(20)." + '\n'
-                + "             03 First PIC X(15)." + '\n'
-                + "           02 Hours." + '\n'
-                + "             03 Regular PIC S9(3)V9(2) PACKED-DECIMAL." + '\n'
-                + "             03 Overtime PIC S9(3)V9(2) PACKED-DECIMAL." + '\n'
-                + "           02 Rate." + '\n'
-                + "             03 Regular PIC S9(1)V9(2) PACKED-DECIMAL." + '\n'
-                + "             03 Overtime PIC S9(1)V9(2) PACKED-DECIMAL." + '\n'
-                + "" + '\n');
+                + "" + LS,
+                "      *" + LS
+                + "      *" + LS
+                + "      *" + LS
+                + "       01 Payroll." + LS
+                + "           02 Name." + LS
+                + "             03 Last PIC X(20)." + LS
+                + "             03 First PIC X(15)." + LS
+                + "           02 Hours." + LS
+                + "             03 Regular PIC S9(3)V9(2) PACKED-DECIMAL." + LS
+                + "             03 Overtime PIC S9(3)V9(2) PACKED-DECIMAL." + LS
+                + "           02 Rate." + LS
+                + "             03 Regular PIC S9(1)V9(2) PACKED-DECIMAL." + LS
+                + "             03 Overtime PIC S9(1)V9(2) PACKED-DECIMAL." + LS
+                + "" + LS);
     }
-    
+
+    /**
+     * Values have special split handling.
+     * @throws Exception if test fails
+     */
+    public void testFormatLongValue() throws Exception {
+        formatAndCheck(
+                "       01 MyStr PIC X(66) value"
+                + " 'ABCDEFGHIJ KLMNOPQRST 1234567890 ABCDEFGHIJ KLMNOPQRST 1234567890 '." + LS,
+                
+                ""
+                + "       01 MyStr PIC X(66) value" + LS
+                + "           'ABCDEFGHIJ KLMNOPQRST 1234567890 ABCDEFGHIJ KLMNOPQRST 12345" + LS
+                + "      -    '67890 '." + LS
+        );
+
+    }
+
+    /**
+     * Values have special split handling.
+     * @throws Exception if test fails
+     */
+    public void testFormatEvenLongerValue() throws Exception {
+        formatAndCheck(
+                "       01 MyStr PIC X(66) value"
+                + " 'ABCDEFGHIJ KLMNOPQRST 1234567890 ABCDEFGHIJ KLMNOPQRST 1234567890 "
+                + "ABCDEFGHIJ KLMNOPQRST 1234567890 ABCDEFGHIJ KLMNOPQRST 1234567890 '." + LS,
+                
+                ""
+                + "       01 MyStr PIC X(66) value" + LS
+                + "           'ABCDEFGHIJ KLMNOPQRST 1234567890 ABCDEFGHIJ KLMNOPQRST 12345" + LS
+                + "      -    '67890 ABCDEFGHIJ KLMNOPQRST 1234567890 ABCDEFGHIJ KLMNOPQRST" + LS
+                + "      -    ' 1234567890 '." + LS
+        );
+    }
     /**
      * Test the calcIndent method.
      * @throws Exception if that fails
@@ -89,34 +133,34 @@ public class CobolFormatterTest extends AbstractTester {
         /*       123456789012345678901234567890123456789012345678901234567890123456789012*/
         fitIn72Columns(
                 "        01 VAR.",
-                "        01 VAR.\n");
+                "        01 VAR." + LS);
         fitIn72Columns(
                 "       01 VAR-WITH-VERY-LONG-DESCRIPTION OCCURS 5 TIMES DEPENDING ON ANOTHER-LONG-VARIABLE-NAME.",
-                "       01 VAR-WITH-VERY-LONG-DESCRIPTION OCCURS 5 TIMES DEPENDING ON\n"
-                + "           ANOTHER-LONG-VARIABLE-NAME.\n");
+                "       01 VAR-WITH-VERY-LONG-DESCRIPTION OCCURS 5 TIMES DEPENDING ON" + LS
+                + "           ANOTHER-LONG-VARIABLE-NAME." + LS);
         fitIn72Columns(
                 "       01 VAR-WITH-VERY-LONG-DESCRIPTION OCCURS 5 TIMES DEPENDING ON AN.",
-                "       01 VAR-WITH-VERY-LONG-DESCRIPTION OCCURS 5 TIMES DEPENDING ON AN.\n");
+                "       01 VAR-WITH-VERY-LONG-DESCRIPTION OCCURS 5 TIMES DEPENDING ON AN." + LS);
         fitIn72Columns(
                 "       01 VAR-WITH-VERY-LONG-DESCRIPTION OCCURS 5 TIMES DEPENDING ON ANO"
                 + "THER-LONG-VARIABLE-NAME PIC 999999999999999V99 PACKED-DECIMAL VALUE 1897564320.89.",
-                "       01 VAR-WITH-VERY-LONG-DESCRIPTION OCCURS 5 TIMES DEPENDING ON\n"
-                + "           ANOTHER-LONG-VARIABLE-NAME PIC 999999999999999V99\n"
-                + "           PACKED-DECIMAL VALUE 1897564320.89.\n");
+                "       01 VAR-WITH-VERY-LONG-DESCRIPTION OCCURS 5 TIMES DEPENDING ON" + LS
+                + "           ANOTHER-LONG-VARIABLE-NAME PIC 999999999999999V99" + LS
+                + "           PACKED-DECIMAL VALUE 1897564320.89." + LS);
     }
 
 
     /**
      * Generic test for formatting.
      * @param source the original source code
-     * @param formatted the formatted source code
+     * @param expected the formatted source code
      * @throws CobolFormatException if formatting fails
      */
-    private void format(
+    private void formatAndCheck(
             final String source,
-            final String formatted) throws CobolFormatException {
+            final String expected) throws CobolFormatException {
         CobolFormatter formatter = new CobolFormatter();
-        assertEquals(formatted,
+        assertEquals(expected,
                 formatter.format(
                         new StringReader(source)));
     }
