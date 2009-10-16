@@ -1,0 +1,12 @@
+Declare 1 Client,
+    2 Number pic '999999',
+    2 Type bit(8),
+    2 Name,
+        3 Individual,
+            5 Last_Name char(20),
+            5 First_Name,
+                7 First char(15),
+                7 Initial char(1),
+        3 Company char(35),
+    2 * char(0);
+                

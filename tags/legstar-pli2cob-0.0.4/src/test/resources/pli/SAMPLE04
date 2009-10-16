@@ -1,0 +1,11 @@
+ DCL 1 FILEA,                                                           16000000
+       2 FILEREC,                                                       24000000
+         3 STAT CHAR(1),                                                32000000
+         3 NUMB PIC '(6)9',                                             40000000
+         3 NAME CHAR(20),                                               48000000
+         3 ADDRX CHAR(20),                                              56000000
+         3 PHONE CHAR(8),                                               64000000
+         3 DATEX CHAR(8),                                               73000000
+         3 AMOUNT CHAR(8),                                              82000000
+         3 COMMENT CHAR(9);                                             91000000
+

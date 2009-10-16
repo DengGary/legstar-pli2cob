@@ -1,0 +1,22 @@
+ /* ----------------------------------------------------------------- */00001000
+ /* A TYPICAL IBM/CICS COPYBOOK                                       */00002000
+ /* 80 columns using 1 to 72 and sequence numbers                     */00003000
+ /* Some sequence numbers missing                                     */
+ /*                                                                   */00013000
+ /* ----------------------------------------------------------------- */00014000
+                                                                        00015000
+ DCL                                                                    00016000
+ 1 SAMP_COMMAREA STATIC,          /* Transaction restart commarea     */00017000
+  2 SAMP_STANDARD_HEADER,         /* Standard commarea header         */00018000
+   3 SAMP_FUNCTION CHAR(1) INIT('1'),/* Function (always '1')         */00019000
+   3 SAMP_COMPONENT_CODE CHAR(2) INIT('XM'),/* Component (always 'XM')*/00020000
+   3 FILLER__001 CHAR(1),         /* Reserved                         */00021000
+  2 SAMP_READ CHAR(1),            /* Terminal read done               */00022000
+  2 SAMP_WRITE CHAR(1),           /* Terminal write done              */00023000
+  2 SAMP_SYNCPOINT CHAR(1),       /* Syncpoint done                   */00024000
+  2 SAMP_RESTART CHAR(1),         /* Restart (output)                 */00025000
+  2 SAMP_RESTART_COUNT FIXED BIN(15), /* No. of previous restarts     */00026000
+  2 FILLER__002 CHAR(2),          /* Reserved                         */00027000
+  2 SAMP_ORIGINAL_ABEND_CODE CHAR(4), /* Original abend code          */00028000
+  2 SAMP_CURRENT_ABEND_CODE CHAR(4), /* Current abend code            */00029000
+  2 SAMP_COMMAREA__FINAL CHAR(0); /* Reserved                         */00030000
