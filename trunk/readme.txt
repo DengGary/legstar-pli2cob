@@ -1,6 +1,6 @@
 Overview:
 =========
-  The pli2cob ant task converts a set of PLI structure definitions to
+  The pli2cob ant task translates a set of PL/I structure definitions to
   COBOL data descriptions.
 
 Prerequisites:
@@ -11,7 +11,7 @@ Running the sample:
 ===================
 
   1. Go to the folder where you unzipped the distribution file. It should
-     contain a build.xml file with a reference to a sample PLI source found
+     contain a build.xml file with a reference to a sample PL/I source found
      under the pli sub folder.
   2. Type ant.
   3. Check the cobol sub folder, a cobol source file should have been created.
@@ -25,10 +25,10 @@ Troubleshooting:
    
    Report issues at: http://code.google.com/p/legstar-pli2cob/issues/list
    
-Using your own PLI source:
-=========================
+Using your own PL/I source:
+==========================
   
-  Only data descriptions are supported. Sources should not contain other PLI
+  Only data descriptions are supported. Sources should not contain other PL/I
   statements.
   Check http://code.google.com/p/legstar-pli2cob/w/list for the data descriptions
   supported.

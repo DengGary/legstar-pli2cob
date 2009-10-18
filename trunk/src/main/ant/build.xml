@@ -1,21 +1,21 @@
 <!-- =================================================================================
-     This script generates cobol data descriptions from PLI structures.
+     This script generates cobol data descriptions from PL/I structures.
  -->
-<project basedir="." default="pli2cob" name="convert-pli-structure-to-cobol">
+<project basedir="." default="pli2cob" name="translate-pli-structure-to-cobol">
 
     <!-- ===========================================================  -->
     <!-- Setup environment
     -->
     <target name="init">
     
-        <!-- Location of input PLI source code  -->
+        <!-- Location of input PL/I source code  -->
         <property name="pli.dir" value="pli"/>
 
-        <!-- Location of output COBOL source code (must exist)  -->
+        <!-- Location of output COBOL source code  -->
         <property name="cobol.dir" value="cobol"/>
         <mkdir dir="${cobol.dir}"/>
 
-        <!-- PLI to COBOL structure converter ant task  -->
+        <!-- PL/I to COBOL structure translator ant task  -->
         <taskdef name="pli2cob"
             classname="com.legstar.pli2cob.task.PLIStructureToCobolTask">
             <classpath>

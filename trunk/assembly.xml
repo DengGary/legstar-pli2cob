@@ -44,6 +44,10 @@ Assembly descriptor for the full distribution.
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
             <scope>runtime</scope>
+            <!-- Only need to distribute the antlr runtime -->
+            <excludes>
+                <exclude>org.antlr:antlr</exclude>
+            </excludes>
         </dependencySet>
      </dependencySets>
 </assembly>
