@@ -1,5 +1,5 @@
 #summary Issues running ANT script.
-#labels Phase-Requirements,Featured
+#labels Phase-Support
 
 = Problems running ANT =
 
