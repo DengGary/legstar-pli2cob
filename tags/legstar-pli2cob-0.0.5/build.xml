@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="antlr" name="antlr">
+    <property environment="env"/>
+    <property name="antlr-home" value="${env.ANTLR_HOME}"/>
+    <property name="maven-home" value="C:\Documents and Settings\Fady\.m2\repository\"/>
+
+    <!-- set global properties for this build -->
+    <property name="grammar.src" location="src/main/antlr3"/>
+    <property name="package" value="com/legstar/pli2cob"/>
+    <property name="lexer.name" value="PLIStructureLexer.g"/>
+    <property name="parser.name" value="PLIStructureParser.g"/>
+    <property name="grammar.gen" location="target/generated-sources/antlr3"/>
+
+    <target name="antlr" description="run antlr on grammar">
+        <echo message="antlr ${grammar.src}/${package}/${parser.name}" />
+        <java
+            classname="org.antlr.Tool"
+    	>
+            <arg value="-report"/> 
+            <arg value="-o"/> 
+            <arg value="${grammar.gen}/${package}"/> 
+            <arg value="-lib"/> 
+            <arg value="${grammar.gen}"/> 
+            <arg value="-trace"/> 
+            <arg value="${grammar.src}/${package}/${lexer.name}"/> 
+            <arg value="${grammar.src}/${package}/${parser.name}"/> 
+            <classpath>
+                <fileset dir="${maven-home}/org/antlr/antlr/3.1.3">
+                    <include name="antlr-3.1.3.jar"/>
+                </fileset>
+                <fileset dir="${maven-home}/org/antlr/antlr-runtime/3.1.3">
+                    <include name="antlr-runtime-3.1.3.jar"/>
+                </fileset>
+                <fileset dir="${maven-home}/org/antlr/stringtemplate/3.2">
+                    <include name="stringtemplate-3.2.jar"/>
+                </fileset>
+                <fileset dir="${maven-home}/antlr/antlr/2.7.7">
+                    <include name="antlr-2.7.7.jar"/>
+                </fileset>
+            </classpath>
+        </java>
+    </target>
+
+</project>    
