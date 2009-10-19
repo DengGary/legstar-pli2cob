@@ -606,10 +606,10 @@ public class PLIDataItem implements IMappable {
     }
 
     /**
-     * Set the value attribute corresponding to the PLI INITIAL clause of
+     * Set the value attribute corresponding to the PL/I INITIAL clause of
      * a data item.
      * <p/>
-     * TODO There are cases where the PLI value would not be acceptable
+     * TODO There are cases where the PL/I value would not be acceptable
      * to COBOL. For instance delimiting QUOTES or APOSTROPHES might need to
      * be adjusted.
      * @param adaptor the tree navigator
@@ -711,7 +711,7 @@ public class PLIDataItem implements IMappable {
     }
 
     /**
-     * Set the union attribute corresponding to the PLI UNION clause of
+     * Set the union attribute corresponding to the PL/I UNION clause of
      * a data item.
      * @param adaptor the tree navigator
      * @param astItem the data item abstract syntax subtree
@@ -733,7 +733,7 @@ public class PLIDataItem implements IMappable {
     /** String varying types. */
     public enum VaryingType { NONVARYING, VARYING, VARYINGZ };
 
-    /** Possible alignment requirements in PLI from lower to higher. */
+    /** Possible alignment requirements in PL/I from lower to higher. */
     public enum AlignmentRequirement { BIT, BYTE, HALFWORD, FULLWORD, DOUBLEWORD };
 
     /**

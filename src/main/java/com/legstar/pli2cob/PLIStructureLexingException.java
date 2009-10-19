@@ -11,7 +11,7 @@
 package com.legstar.pli2cob;
 
 /**
- * The PLI source is unreadable or corrupted.
+ * The PL/I source is unreadable or corrupted.
  *
  */
 public class PLIStructureLexingException extends Exception {

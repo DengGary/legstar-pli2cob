@@ -24,8 +24,8 @@ Assembly descriptor for the full distribution.
             </includes>
         </fileSet>
         <fileSet>
-            <directory>src/main/pli</directory>
-            <outputDirectory>pli</outputDirectory>
+            <directory>src/main/pl1</directory>
+            <outputDirectory>pl1</outputDirectory>
             <includes>
                 <include>*.*</include>
             </includes>
@@ -38,7 +38,30 @@ Assembly descriptor for the full distribution.
                 <include>license.txt</include>
             </includes>
         </fileSet>
+        
+        <!-- Copy over the standalone executable jar -->
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>*-exe.jar</include>
+            </includes>
+        </fileSet>
     </fileSets>
+    
+    <files>
+        <!-- Copy command files to run standalone executable jar -->
+        <file>
+            <source>run.bat</source>
+            <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
+        </file>
+        <file>
+            <source>run.sh</source>
+            <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
+        </file>
+    </files>
 
     <dependencySets>
         <dependencySet>

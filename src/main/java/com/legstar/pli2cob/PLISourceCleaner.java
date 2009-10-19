@@ -17,8 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * PLI Source code might contain non-PLI characters such as sequence numbers or
- * non Structure PLI statements.
+ * PL/I Source code might contain non-PLI characters such as sequence numbers or
+ * non Structure PL/I statements.
  * The antlr based Lexer/parser would choke on such things so we try to remove
  * them here.
  *
@@ -32,9 +32,9 @@ public class PLISourceCleaner {
     private static final Pattern UNWANTED_CHARACTERS = Pattern.compile("[\\x1A]");
 
     /**
-     * Takes in a raw PLI source potentially containing sequence numbers or
+     * Takes in a raw PL/I source potentially containing sequence numbers or
      * non structure statements and produces a clean source code.
-     * @param pliSource the raw PLI source
+     * @param pliSource the raw PL/I source
      * @return the source cleaned up
      * @throws PLIStructureReadingException if source cannot be read
      */
@@ -60,7 +60,7 @@ public class PLISourceCleaner {
 
     /**
      * Removes sequence numbers from a source file.
-     * @param source the PLI source
+     * @param source the PL/I source
      * @return a source without sequence numbers
      * @throws PLIStructureReadingException  if source cannot be read
      */

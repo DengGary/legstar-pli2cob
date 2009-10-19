@@ -13,7 +13,7 @@ package com.legstar.pli2cob.smap;
 import com.legstar.pli2cob.model.PLIDataItem;
 
 /**
- * In the sense of the PLI structure mapping algorithm, a minor structure
+ * In the sense of the PL/I structure mapping algorithm, a minor structure
  * is a structure declared with a level number greater than 1.
  */
 public class MinorStructure {

@@ -11,6 +11,7 @@
 package com.legstar.pli2cob;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
@@ -24,6 +25,7 @@ import org.antlr.runtime.tree.DOTTreeGenerator;
 import org.antlr.runtime.tree.TreeNodeStream;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -86,6 +88,36 @@ public class PLIStructureToCobol {
         return format(emit(map(enhance(parse(lexify(clean(pliSource)))))));
     }
 
+    /**
+     * Execute the translation from PL/I to COBOL.
+     * @param pliSourceFile the PL/I source code
+     * @param targetDir folder where COBOL result is to be written
+     * @return the COBOL source code
+     * @throws PLIStructureLexingException if PL/I structure is unreadable
+     * @throws PLIStructureParsingException if source contains unsupported statements
+     * @throws CobolFormatException if formatting fails
+     * @throws PLIStructureReadingException if source code cannot be read
+     */
+    public File translate(
+            final File pliSourceFile,
+            final File targetDir) throws PLIStructureLexingException,
+            PLIStructureParsingException,
+            CobolFormatException,
+            PLIStructureReadingException {
+        try {
+            _log.info("Translating PL/I file: " + pliSourceFile);
+            String cobolSource = translate(
+                    FileUtils.readFileToString(pliSourceFile));
+            String cobolFileName = pliSourceFile.getName() + ".cbl";
+            File cobolSourceFile = new File(targetDir, cobolFileName);
+            FileUtils.writeStringToFile(cobolSourceFile, cobolSource);
+            _log.info("Created COBOL file: " + cobolSourceFile);
+            return cobolSourceFile;
+        } catch (IOException e) {
+            _log.error("Translation failed", e);
+            throw new PLIStructureReadingException(e);
+        }
+    }
 
     /**
      * Remove any non PL/I Structure characters from the source.

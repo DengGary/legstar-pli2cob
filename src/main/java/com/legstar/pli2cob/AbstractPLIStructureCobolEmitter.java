@@ -50,7 +50,7 @@ public abstract class AbstractPLIStructureCobolEmitter extends TreeParser {
     /** A helper class to check for valid COBOL names. */
     private CobolNameResolver _nameResolver = new CobolNameResolver();
 
-    /** Detects repetition factors in PLI picture.*/
+    /** Detects repetition factors in PL/I picture.*/
     private static final Pattern REPETITION_FACTOR_PATTERN =
         Pattern.compile("\\(\\d+\\)");
 
@@ -139,12 +139,12 @@ public abstract class AbstractPLIStructureCobolEmitter extends TreeParser {
     }
 
     /**
-     * COBOL pictures are close to PLI pictures. They are differences though:
+     * COBOL pictures are close to PL/I pictures. They are differences though:
      * <ul>
      * <li>Repetition factors are inverted: (n)9 --> 9(n)</li>
      * <li>T signals overpunch which is implicit in COBOL</li>
      * </ul>
-     * @param picture the PLI picture
+     * @param picture the PL/I picture
      * @return the COBOL picture
      */
     public String formatCobolPicture(final String picture) {
@@ -176,10 +176,10 @@ public abstract class AbstractPLIStructureCobolEmitter extends TreeParser {
     }
 
     /**
-     * In PLI any character can be overpunched. In COBOL, only the first
-     * or last. Here we oversimplify by assuming the PLI picture has only one
+     * In PL/I any character can be overpunched. In COBOL, only the first
+     * or last. Here we oversimplify by assuming the PL/I picture has only one
      * T as the first or last position.
-     * @param picture the PLI picture
+     * @param picture the PL/I picture
      * @return a picture with overpunch replaced
      */
     protected String resolveOverpunch(final String picture) {
@@ -200,7 +200,7 @@ public abstract class AbstractPLIStructureCobolEmitter extends TreeParser {
 
     /**
      * Inverts the repetition factors.
-     * @param picture the PLI picture
+     * @param picture the PL/I picture
      * @return a string with repetition factors inverted
      * TODO scaling factors are missed for repetition factors
      */

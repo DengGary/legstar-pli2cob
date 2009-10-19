@@ -17,7 +17,7 @@ import com.legstar.pli2cob.PLIStructureParser;
 import com.legstar.pli2cob.util.ASTUtils;
 
 /**
- * Describes a PLI bound for an array dimension.
+ * Describes a PL/I bound for an array dimension.
  *
  */
 public class PLIDataBound {

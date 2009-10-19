@@ -179,8 +179,8 @@ public class PLIStructureToCobolTaskTest extends AbstractTester {
         FileSet fileset = task.createFileset();
         fileset.setFile(new File("src/test/resources/pli/" + fileName));
         task.setTargetDir(new File("target"));
-        task.setSyncpad(true);
-        task.setSynchang(true);
+        task.setAddPad(true);
+        task.setAddHang(true);
         try {
             task.execute();
             assertEquals(expected,

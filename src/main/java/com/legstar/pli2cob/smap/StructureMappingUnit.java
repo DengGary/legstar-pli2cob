@@ -17,7 +17,7 @@ import com.legstar.pli2cob.model.PLIDataItem;
 import com.legstar.pli2cob.util.ASTUtils;
 
 /**
- * Represents an aggregate of consecutive data items as described in the PLI structure
+ * Represents an aggregate of consecutive data items as described in the PL/I structure
  * mapping algorithm.
  * <p/>
  *

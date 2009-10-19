@@ -1,7 +1,7 @@
 <!-- =================================================================================
      This script generates cobol data descriptions from PL/I structures.
  -->
-<project basedir="." default="pli2cob" name="translate-pli-structure-to-cobol">
+<project basedir="." default="pli2cob" name="translate-pl1-structure-to-cobol">
 
     <!-- ===========================================================  -->
     <!-- Setup environment
@@ -9,7 +9,7 @@
     <target name="init">
     
         <!-- Location of input PL/I source code  -->
-        <property name="pli.dir" value="pli"/>
+        <property name="pl1.dir" value="pl1"/>
 
         <!-- Location of output COBOL source code  -->
         <property name="cobol.dir" value="cobol"/>
@@ -31,7 +31,7 @@
     -->
     <target name="pli2cob" depends="init">
         <pli2cob targetDir="${cobol.dir}">
-            <fileset dir="${pli.dir}">
+            <fileset dir="${pl1.dir}">
                 <include name="*.pl*"/>
             </fileset>
         </pli2cob>

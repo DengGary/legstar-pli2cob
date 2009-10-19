@@ -182,8 +182,8 @@ public abstract class AbstractTester extends TestCase {
             final boolean synchang) {
         try {
             PLIStructureToCobol pli2cob = new PLIStructureToCobol();
-            pli2cob.getContext().setSyncpad(syncpad);
-            pli2cob.getContext().setSynchang(synchang);
+            pli2cob.getContext().setAddPAd(syncpad);
+            pli2cob.getContext().setAddHang(synchang);
             assertEquals(expected, trimCobolComment(pli2cob.translate(source)));
         } catch (Exception e) {
             e.printStackTrace();
