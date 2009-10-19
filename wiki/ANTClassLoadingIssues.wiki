@@ -65,13 +65,13 @@ In my experience, none of the problems mentioned here occur when you run the bui
 
 Eclipse has its own ant libraries it gets from a plugin. Typically the ant libraries in this plugin are the bare minimum needed to run ant.
 
-Another reason why the previous issues to not happen is that there is only one class loader used for both the ant libraries and the libraries defined to taskdef.
+Another reason why the previous issues do not happen with Eclipse is that there is only one class loader used for both the ant libraries and the libraries defined to taskdef.
 
 = Conclusion =
 
 Whenever you can, just use Eclipse to run the ant script.
 
-If you can and start hitting the kind of issues mentioned here, look for potential conflicts at the antlr/stringtemplate/log4j level.
+If you can't and start hitting the kind of issues mentioned here, look for potential conflicts at the antlr/stringtemplate/log4j level.
 
-
+Also note that the legstar-pli2cob delivery now contains a standalone executable jar that you can use as an alternative to the ant script.
 
