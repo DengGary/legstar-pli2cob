@@ -1,0 +1,34 @@
+#summary Issues running ANT script.
+#labels Phase-Requirements,Featured
+
+= Problems running ANT =
+
+The build.xml script provided with the legstar-pli2cob distribution is quite simple and yet you might (indeed you will probably) run into one of several issues related with  class loading.
+
+Let's refer to the location where you unzipped the legstar-pli2cob distribution as HOME_PLI2COB.
+
+Most of these problems are the consequence of conflicts between classes from HOME_PLI2COB/lib and classes in ANT_HOME/lib or ${user.home}/.ant/lib.
+
+Furthermore, you might get different behaviors when running the ANT script from the command line or using an Eclipse launcher.
+
+ANT does not load all libraries using the same classloader. In my case, when I run ANT from the command line, libraries from ANT_HOME/lib are loaded by ANT using an instance of java.net.URLClassLoader while the libraries defined to taskdef in build.xml (i.e. the HOME_PLI2COB/lib libraries) are loaded with an instance of org.apache.tools.ant.loader.AntClassLoader2. These 2 class loaders are not parent of one another (although they both have the same parent hierarchy).
+
+The same class, loaded by 2 class loaders which are not parent to one another, are considered 2 different classes by the JVM. As a consequence, any class that is both in ANT_HOME/lib and HOME_PLI2COB/lib might cause trouble.
+
+== CharScanner; panic: ClassNotFoundException: org.antlr.stringtemplate.language.ChunkToken ==
+
+=== Reason ===
+
+This exception happens when a library in ANT_HOME/lib contains ANTLR libraries (typically antlr-2.7.7.jar or any other jar containing these classes).
+
+In this case, a class cast within StringTemplate libraries (loaded from HOME_PLI2COB/lib) fails because antlr.CharScanner was loaded from ANT_HOME/lib.
+
+=== Workaround ===
+
+There are 2 things you can do:
+
+ * Run ANT with the -lib command line option: ant -lib lib
+
+ * Copy stringtemplate-3.2.jar from HOME_PLI2COB/lib to ANT_HOME/lib
+ 
+The objective is to get ANTLR and StringTemplate to be loaded by the same class loader.
