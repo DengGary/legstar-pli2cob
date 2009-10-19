@@ -117,6 +117,16 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>3.8.1</version>
@@ -183,7 +193,7 @@
                 <version>3.1.3-1</version>
                 <configuration>
                     <verbose>true</verbose>
-                    <report>true</report>
+                    <report>false</report>
                     <libDirectory>target/generated-sources/antlr3/com/legstar/pli2cob</libDirectory>
                 </configuration>
                 <executions>
@@ -201,8 +211,8 @@
                 <artifactId>maven-assembly-plugin</artifactId> 
                 <configuration>
                     <descriptors>
-                        <descriptor>assembly.xml</descriptor>
                         <descriptor>assembly-exe.xml</descriptor>
+                        <descriptor>assembly.xml</descriptor>
                     </descriptors>
                     <archive>
                         <manifest>
@@ -226,6 +236,21 @@
       
                 <executions>
 
+                    <!-- Generate a version properties file -->
+                    <execution>
+                        <id>generate-version</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <tasks>
+                                <ant antfile="${basedir}/src/main/ant/maven-to-version-properties.xml" />
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+
+                    <!-- Test the distribution files -->
                     <execution>
                         <id>test-distribution</id>
                         <phase>verify</phase>
@@ -239,6 +264,30 @@
                         </goals>
                     </execution>
 
+                </executions>
+            </plugin>
+
+            <!-- Let maven know about the location where we generate the version properties file
+                 so that it gets included in the target jar file  -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>add-resource</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/version</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 

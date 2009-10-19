@@ -11,7 +11,7 @@
 package com.legstar.pli2cob;
 
 /**
- * The PLI source contains statements that we are unable to parse.
+ * The PL/I source contains statements that we are unable to parse.
  *
  */
 public class PLIStructureParsingException extends Exception {

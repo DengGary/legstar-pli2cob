@@ -537,7 +537,7 @@ public class ASTStructureMapperTest extends AbstractTester {
         CommonTree ast = parseAndEnhance(source);
         try {
             ASTStructureMapper mapper = new ASTStructureMapper();
-            mapper.getContext().setSynchang(synchang);
+            mapper.getContext().setAddHang(synchang);
             mapper.map(ast);
             assertEquals(expected, ast.toStringTree());
         } catch (StructureMappingException e) {

@@ -36,7 +36,7 @@ import com.legstar.pli2cob.PLIStructureParser.pl1code_return;
 import com.legstar.pli2cob.model.PLIDataItem;
 
 /**
- * This class contains the logic described in PLI Language Reference for
+ * This class contains the logic described in PL/I Language Reference for
  * structure mapping.
  * <p/>
  * It will analyze structures mapping and detect where padding bytes might
@@ -44,14 +44,14 @@ import com.legstar.pli2cob.model.PLIDataItem;
  * <p/>
  * If requested, it sill insert padding characters where needed in a structure in order
  * for the translated COBOL structure to map exactly the same data items in memory
- * as the original PLI structure.
+ * as the original PL/I structure.
  * <p/>
  * Padding characters result in new logical AST nodes in the Abstract Syntax Tree.
  *
  */
 public class ASTStructureMapper {
 
-    /** Execution parameters for the PLI to COBOL utility. */
+    /** Execution parameters for the PL/I to COBOL utility. */
     private Pli2CobContext _context;
 
     /** Logger. */
@@ -65,7 +65,7 @@ public class ASTStructureMapper {
     }
 
     /**
-     * @param context execution parameters for the PLI to COBOL utility
+     * @param context execution parameters for the PL/I to COBOL utility
      */
     public ASTStructureMapper(final Pli2CobContext context) {
         _context = context;
@@ -105,7 +105,7 @@ public class ASTStructureMapper {
      * <ul>
      * <li>Identify the deepest minor structure</li>
      * <li>Classify all minor structures relative to the deepest</li>
-     * <li>Pair data items as described in PLI language reference</li>
+     * <li>Pair data items as described in PL/I language reference</li>
      * <li>Create new padding nodes in the abstract syntax tree</li>
      * </ul>
      * @param adaptor the tree navigator helper
@@ -127,10 +127,10 @@ public class ASTStructureMapper {
         StructureMappingUnit mappingUnit = mapStructures(
                 adaptor, minorStructures, paddingNodes);
 
-        if (getContext().isSyncpad()) {
+        if (getContext().isAddPad()) {
             addPaddingNodes(adaptor, paddingNodes);
         }
-        if (getContext().isSynchang()) {
+        if (getContext().isAddHang()) {
             addHangNode(adaptor, ast, mappingUnit.getOffset());
         }
         return ast;
@@ -448,7 +448,7 @@ public class ASTStructureMapper {
     }
 
     /**
-     * @return the execution parameters for the PLI to COBOL utility
+     * @return the execution parameters for the PL/I to COBOL utility
      */
     public Pli2CobContext getContext() {
         return _context;

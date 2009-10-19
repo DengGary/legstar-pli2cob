@@ -21,6 +21,8 @@
         <property name="dist.dir" value="${basedir}/target" />
         <!-- Distribution zip file   -->
         <property name="zip.file" value="${dist.dir}/${dist.zip}" />
+    	<!-- Sample generated COBOL file full path -->
+    	<property name="cobolSampleFilePath" value="${test.dir}/${dist.name}/cobol/sample.pl1.cbl"/>
     
     </target>
 
@@ -32,10 +34,30 @@
     </target>
     
     <!-- ===========================================================  -->
-    <!-- Run the sample build
+    <!-- Run the sample standalone jar
     -->
-    <target name="testDistro" depends="installDistro">
-        <ant antfile="build.xml" dir="${test.dir}/${dist.name}" target="pli2cob"/>
+    <target name="testStandalone" depends="installDistro">
+    	<delete file="${cobolSampleFilePath}"/>
+        <exec dir="${test.dir}/${dist.name}" executable="cmd" failonerror="true">
+            <arg value="/c"/>
+            <arg value="run"/>
+        </exec>
+        <available file="${cobolSampleFilePath}" property="isFileAvail1"/>
+        <fail unless="isFileAvail1" message="Run.bat failed!"/>
     </target>
 
+	<!-- ===========================================================  -->
+    <!-- Run the sample ant build
+    -->
+    <target name="testAnt" depends="installDistro">
+        <delete file="${cobolSampleFilePath}"/>
+        <ant antfile="build.xml" dir="${test.dir}/${dist.name}" target="pli2cob"/>
+        <available file="${cobolSampleFilePath}" property="isFileAvail2"/>
+        <fail unless="isFileAvail2" message="Buil.xml failed!"/>
+    </target>
+
+	<!-- ===========================================================  -->
+    <!-- Run the samples
+    -->
+    <target name="testDistro" depends="testStandalone,testAnt"/>
 </project>

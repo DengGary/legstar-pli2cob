@@ -10,13 +10,7 @@
  ******************************************************************************/
 package com.legstar.pli2cob.task;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,7 +30,7 @@ import com.legstar.pli2cob.PLIStructureToCobol;
 import com.legstar.pli2cob.Pli2CobContext;
 
 /**
- * PLI to COBOL structure ANT Task.
+ * PL/I to COBOL structure ANT Task.
  * <code>
  * Usage:<br>
  *
@@ -68,23 +62,23 @@ public class PLIStructureToCobolTask extends Task {
 
     /** 
      * Indicates whether additional padding bytes should be added to COBOL
-     * structures to accommodate PLI hidden alignment mapping bytes.
+     * structures to accommodate PL/I hidden alignment mapping bytes.
      * */
-    private boolean _syncpad = true;
+    private boolean _addPad = true;
 
     /** 
      * Indicates whether initial padding bytes should be added to COBOL
-     * structures to accommodate PLI potential structure offsetting from
+     * structures to accommodate PL/I potential structure offsetting from
      * doubleword boundaries.
      * */
-    private boolean _synchang = false;
+    private boolean _addHang = false;
 
     /**
      *  The ant execution method.
      *  Check parameters and produce COBOL fragment.
      */
     public final void execute() {
-        _log.info("Translating PLI files");
+        _log.info("Translating PL/I files");
 
         checkParameters();
 
@@ -99,10 +93,7 @@ public class PLIStructureToCobolTask extends Task {
                 String[] files = scanner.getIncludedFiles();
                 for (int i = 0; i < files.length; i++) {
                     File pliSourceFile = new File(fileset.getDir(getProject()), files[i]);
-                    _log.info("Translating PLI file: " + pliSourceFile);
-                    String cobolSource = pli2cob.translate(fileToString(pliSourceFile));
-                    File cobolSourceFile = stringToFile(getTargetDir(), pliSourceFile, cobolSource);
-                    _log.info("Created COBOL file: " + cobolSourceFile);
+                    pli2cob.translate(pliSourceFile, getTargetDir());
                 }
             }
         } catch (IllegalStateException e) {
@@ -155,72 +146,9 @@ public class PLIStructureToCobolTask extends Task {
      */
     private Pli2CobContext createContext() {
         Pli2CobContext context = new Pli2CobContext();
-        context.setSyncpad(isSyncpad());
-        context.setSynchang(isSynchang());
+        context.setAddPAd(isAddPad());
+        context.setAddHang(isAddHang());
         return context;
-    }
-
-    /**
-     * Reads a file content (assumed to be characters) into a String.
-     * @param file the input file
-     * @return the content as a String
-     */
-    private String fileToString(final File file) {
-        String errorMessage = "Unable to read file " + file;
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(file));
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + '\n');
-            }
-            return sb.toString();
-        } catch (FileNotFoundException e) {
-            _log.error(errorMessage, e);
-            throw (new BuildException(errorMessage));
-        } catch (IOException e) {
-            _log.error(errorMessage, e);
-            throw (new BuildException(errorMessage));
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    _log.warn("Unable to close file " + file, e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Creates a COBOL file translated from a PLI source.
-     * @param targetDir the target directory we know exists
-     * @param sourceFile the original source file (used to derive a name for the target file)
-     * @param cobolSource the COBOL source code as a string
-     * @return the cobol file created
-     */
-    private File stringToFile(final File targetDir, final File sourceFile, final String cobolSource) {
-        String cobolFileName = sourceFile.getName() + ".cbl";
-        File cobolFile = new File(targetDir, cobolFileName);
-        String errorMessage = "Unable to write file " + cobolFile;
-        BufferedWriter writer = null;
-        try {
-            writer = new BufferedWriter(new FileWriter(cobolFile));
-            writer.write(cobolSource);
-            return cobolFile;
-        } catch (IOException e) {
-            _log.error(errorMessage, e);
-            throw (new BuildException(errorMessage));
-        } finally {
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    _log.warn("Unable to close file " + cobolFile, e);
-                }
-            }
-        }
     }
 
     /**
@@ -248,36 +176,36 @@ public class PLIStructureToCobolTask extends Task {
 
     /**
      * @return whether additional padding bytes should be added to COBOL
-     * structures to accommodate PLI hidden alignment mapping bytes
+     * structures to accommodate PL/I hidden alignment mapping bytes
      */
-    public boolean isSyncpad() {
-        return _syncpad;
+    public boolean isAddPad() {
+        return _addPad;
     }
 
     /**
-     * @param syncpad whether additional padding bytes should be added to COBOL
-     * structures to accommodate PLI hidden alignment mapping bytes
+     * @param addPad whether additional padding bytes should be added to COBOL
+     * structures to accommodate PL/I hidden alignment mapping bytes
      */
-    public void setSyncpad(final boolean syncpad) {
-        _syncpad = syncpad;
+    public void setAddPad(final boolean addPad) {
+        _addPad = addPad;
     }
 
     /**
      * @return whether initial padding bytes should be added to COBOL
-     * structures to accommodate PLI potential structure offsetting from
+     * structures to accommodate PL/I potential structure offsetting from
      * doubleword boundaries
      */
-    public boolean isSynchang() {
-        return _synchang;
+    public boolean isAddHang() {
+        return _addHang;
     }
 
     /**
-     * @param synchang whether initial padding bytes should be added to COBOL
-     * structures to accommodate PLI potential structure offsetting from
+     * @param addHang whether initial padding bytes should be added to COBOL
+     * structures to accommodate PL/I potential structure offsetting from
      * doubleword boundaries
      */
-    public void setSynchang(final boolean synchang) {
-        _synchang = synchang;
+    public void setAddHang(final boolean addHang) {
+        _addHang = addHang;
     }
 
     /**

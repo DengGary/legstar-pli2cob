@@ -11,7 +11,7 @@
 package com.legstar.pli2cob;
 
 /**
- * The PLI source is unreadable.
+ * The PL/I source is unreadable.
  *
  */
 public class PLIStructureReadingException extends Exception {
