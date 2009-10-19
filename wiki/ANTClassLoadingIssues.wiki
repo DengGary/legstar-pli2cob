@@ -11,9 +11,17 @@ Most of these problems are the consequence of conflicts between classes from HOM
 
 Furthermore, you might get different behaviors when running the ANT script from the command line or using an Eclipse launcher.
 
-ANT does not load all libraries using the same classloader. In my case, when I run ANT from the command line, libraries from ANT_HOME/lib are loaded by ANT using an instance of java.net.URLClassLoader while the libraries defined to taskdef in build.xml (i.e. the HOME_PLI2COB/lib libraries) are loaded with an instance of org.apache.tools.ant.loader.AntClassLoader2. These 2 class loaders are not parent of one another (although they both have the same parent hierarchy).
+ANT does not load all libraries using the same classloader. In my case, when I run ANT from the command line:
+
+ * libraries from ANT_HOME/lib are loaded by ANT using an instance of java.net.URLClassLoader
+ 
+ * libraries defined to taskdef in build.xml (i.e. the HOME_PLI2COB/lib libraries) are loaded with an instance of org.apache.tools.ant.loader.AntClassLoader2
+ 
+These 2 class loaders are not parent of one another (although they both have the same parent hierarchy).
 
 The same class, loaded by 2 class loaders which are not parent to one another, are considered 2 different classes by the JVM. As a consequence, any class that is both in ANT_HOME/lib and HOME_PLI2COB/lib might cause trouble.
+
+The following are typical errors you might get.
 
 == CharScanner; panic: ClassNotFoundException: org.antlr.stringtemplate.language.ChunkToken ==
 
@@ -21,7 +29,7 @@ The same class, loaded by 2 class loaders which are not parent to one another, a
 
 This exception happens when a library in ANT_HOME/lib contains ANTLR libraries (typically antlr-2.7.7.jar or any other jar containing these classes).
 
-In this case, a class cast within StringTemplate libraries (loaded from HOME_PLI2COB/lib) fails because antlr.CharScanner was loaded from ANT_HOME/lib.
+In this case, a class cast within StringTemplate libraries (loaded from HOME_PLI2COB/lib) fails because antlr.CharScanner was initially loaded from ANT_HOME/lib.
 
 === Workaround ===
 
