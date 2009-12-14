@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 
-import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
@@ -31,6 +30,7 @@ import org.antlr.stringtemplate.StringTemplateGroup;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.legstar.antlr.ANTLRNoCaseReaderStream;
 import com.legstar.pli2cob.PLIStructureParser.pl1code_return;
 import com.legstar.pli2cob.model.PLIDataItem;
 
@@ -56,7 +56,7 @@ public abstract class AbstractTester extends TestCase {
     public CommonTokenStream lexify(final String source) {
         try {
             PLIStructureLexer lex = new PLIStructureLexerImpl(
-                    new ANTLRReaderStream(new StringReader(source)));
+                    new ANTLRNoCaseReaderStream(new StringReader(source)));
             CommonTokenStream tokens = new CommonTokenStream(lex);
             assertEquals(0, lex.getNumberOfSyntaxErrors());
             assertTrue(tokens != null);

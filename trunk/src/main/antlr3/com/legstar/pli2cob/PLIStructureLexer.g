@@ -34,34 +34,34 @@ package com.legstar.pli2cob;
  * Supported keywords
  * When adding new keywords also update parser to accept them as data item names
  *------------------------------------------------------------------*/
-DECLARE_KEYWORD: 'DECLARE' | 'declare' | 'Declare' | 'DCL' | 'dcl' | 'Dcl';
-REAL_KEYWORD: 'REAL' | 'real' | 'Real';
-COMPLEX_KEYWORD: 'COMPLEX' | 'complex' | 'Complex' | 'CPLX' | 'cplx' | 'Cplx';
-FIXED_KEYWORD: 'FIXED' | 'fixed' | 'Fixed';
-FLOAT_KEYWORD: 'FLOAT' | 'float' | 'Float';
-PRECISION_KEYWORD: 'PRECISION' | 'precision' | 'Precision' | 'PREC' | 'prec' | 'Prec';
-DECIMAL_KEYWORD: 'DECIMAL' | 'decimal' | 'Decimal' | 'DEC' | 'dec' | 'Dec';
-BINARY_KEYWORD: 'BINARY' | 'binary' | 'Binary' | 'BIN' | 'bin' | 'Bin';
-BIT_KEYWORD: 'BIT' | 'bit' | 'Bit'; 
-SIGNED_KEYWORD: 'SIGNED' | 'signed' | 'Signed';
-UNSIGNED_KEYWORD: 'UNSIGNED' | 'unsigned' | 'Unsigned';
-CHARACTER_KEYWORD: 'CHARACTER' | 'character' | 'Character' | 'CHAR' | 'char' | 'Char'; 
-WIDECHAR_KEYWORD: 'WIDECHAR' | 'widechar' | 'Widechar' | 'WCHAR' | 'wchar' | 'Wchar'; 
-GRAPHIC_KEYWORD: 'GRAPHIC' | 'graphic' | 'Graphic' | 'G' | 'g'; 
-REFER_KEYWORD: 'REFER' | 'refer' | 'Refer'; 
-NONVARYING_KEYWORD: 'NONVARYING' | 'nonvarying' | 'Nonvarying' | 'NONVAR' | 'nonvar' | 'Nonvar'; 
-VARYING_KEYWORD: 'VARYING' | 'varying' | 'Varying' | 'VAR' | 'var' | 'Var'; 
-VARYINGZ_KEYWORD: 'VARYINGZ' | 'varyingz' | 'Varyingz' |  'VARZ' | 'varz' | 'Varz'; 
-PICTURE_KEYWORD: 'PICTURE' | 'picture' | 'Picture' |  'PIC' | 'pic' | 'Pic'; 
-DIMENSION_KEYWORD: 'DIMENSION' | 'dimension' | 'Dimension' |  'DIM' | 'dim' | 'Dim';
-ALIGNED_KEYWORD: 'ALIGNED' | 'aligned' | 'Aligned';
-UNALIGNED_KEYWORD: 'UNALIGNED' | 'unaligned' | 'Unaligned';
-INITIAL_KEYWORD: 'INITIAL' | 'initial' | 'Initial' | 'INIT' | 'Init' | 'init';
-AUTOMATIC_KEYWORD: 'AUTOMATIC' | 'automatic' | 'Automatic' | 'AUTO' | 'Auto' | 'auto';
-STATIC_KEYWORD: 'STATIC' | 'Static' | 'static';
-BASED_KEYWORD: 'BASED' | 'Based' | 'based';
-CONTROLLED_KEYWORD: 'CONTROLLED' | 'controlled' | 'Controlled' | 'CTL' | 'ctl' | 'Ctl';
-UNION_KEYWORD: 'UNION' | 'union' | 'Union';
+DECLARE_KEYWORD: 'D' ('ECLARE' | 'CL');
+REAL_KEYWORD: 'REAL';
+COMPLEX_KEYWORD: 'C' ('OMPLEX' | 'PLX');
+FIXED_KEYWORD: 'FIXED';
+FLOAT_KEYWORD: 'FLOAT';
+PRECISION_KEYWORD: 'PRE' ('CISION' | 'C');
+DECIMAL_KEYWORD: 'DEC' ('IMAL')?;
+BINARY_KEYWORD: 'BIN' ('ARY')?;
+BIT_KEYWORD: 'BIT'; 
+SIGNED_KEYWORD: 'SIGNED';
+UNSIGNED_KEYWORD: 'UNSIGNED';
+CHARACTER_KEYWORD: 'CHAR' ('ACTER')?; 
+WIDECHAR_KEYWORD: 'W' ('IDE')? 'CHAR'; 
+GRAPHIC_KEYWORD: 'G' ('RAPHIC')?; 
+REFER_KEYWORD: 'REFER'; 
+NONVARYING_KEYWORD: 'NONVAR' ('YING')?; 
+VARYING_KEYWORD: 'VAR' ('YING')?; 
+VARYINGZ_KEYWORD: 'VAR' ('YING')? 'Z'; 
+PICTURE_KEYWORD: 'PIC' ('TURE')?; 
+DIMENSION_KEYWORD: 'DIM' ('ENSION')?;
+ALIGNED_KEYWORD: 'ALIGNED';
+UNALIGNED_KEYWORD: 'UNALIGNED';
+INITIAL_KEYWORD: 'INIT' ('IAL')?;
+AUTOMATIC_KEYWORD: 'AUTO' ('MATIC')?;
+STATIC_KEYWORD: 'STATIC';
+BASED_KEYWORD: 'BASED';
+CONTROLLED_KEYWORD: 'C' ('ONTROLLED' | 'TL');
+UNION_KEYWORD: 'UNION';
 
 /*------------------------------------------------------------------
  * Character lexicon
@@ -82,9 +82,6 @@ SIGNED_INTEGER: SIGN UNSIGNED_INTEGER;
 UNSIGNED_INTEGER: DIGIT+;
 FLOAT: (UNSIGNED_INTEGER | SIGNED_INTEGER) (FRACTION EXPONENT? | EXPONENT);
 ASTERISK: '*';
-EQUALS: '=';
-LT: '<';
-GT: '>';
 
 /*------------------------------------------------------------------
  * Whitespaces, newlines and comments

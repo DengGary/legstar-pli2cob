@@ -18,7 +18,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
@@ -27,6 +26,7 @@ import org.antlr.runtime.tree.TreeAdaptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.legstar.antlr.ANTLRNoCaseReaderStream;
 import com.legstar.pli2cob.PLIStructureLexer;
 import com.legstar.pli2cob.PLIStructureLexerImpl;
 import com.legstar.pli2cob.PLIStructureParser;
@@ -415,7 +415,7 @@ public class ASTStructureMapper {
         try {
             String source = String.format("dcl %1$d * char(%2$d);", physicalLevel, padding);
             PLIStructureLexer lexer = new PLIStructureLexerImpl(
-                    new ANTLRReaderStream(new StringReader(source)));
+                    new ANTLRNoCaseReaderStream(new StringReader(source)));
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             PLIStructureParser parser = new PLIStructureParserImpl(tokens);
             pl1code_return parserResult = parser.pl1code();

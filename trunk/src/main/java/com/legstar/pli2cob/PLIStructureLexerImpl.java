@@ -53,7 +53,7 @@ public class PLIStructureLexerImpl extends PLIStructureLexer {
     /** {@inheritDoc} */
     public String getErrorMessage(final RecognitionException e, final String[] tokenNames) {
         if (_log.isDebugEnabled()) {
-            List < ? > stack = getRuleInvocationStack(e, this.getClass().getName());
+            List < ? > stack = getRuleInvocationStack(e, PLIStructureLexer.class.getName());
             String msg = null;
             if (e instanceof NoViableAltException) {
                 NoViableAltException nvae = (NoViableAltException) e;

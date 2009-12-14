@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 
-import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
@@ -29,6 +28,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.legstar.antlr.ANTLRNoCaseReaderStream;
 import com.legstar.pli2cob.smap.ASTStructureMapper;
 import com.legstar.pli2cob.smap.StructureMappingException;
 
@@ -146,7 +146,7 @@ public class PLIStructureToCobol {
         String errorMessage = "Lexing failed.";
         try {
             PLIStructureLexer lex = new PLIStructureLexerImpl(
-                    new ANTLRReaderStream(new StringReader(source)));
+                    new ANTLRNoCaseReaderStream(new StringReader(source)));
             CommonTokenStream tokens = new CommonTokenStream(lex);
             if (lex.getNumberOfSyntaxErrors() != 0 || tokens == null) {
                 _log.error(errorMessage);
