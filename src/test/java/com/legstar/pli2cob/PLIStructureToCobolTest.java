@@ -235,4 +235,18 @@ public class PLIStructureToCobolTest extends AbstractTester {
                 false);
     }
 
+    /**
+     * Test an initial statement that contains space characters.
+     */
+    public void testInitialWithSpaces() {
+        translateAndCheck(
+                "dcl b char(5) init('a b c');"
+                ,
+
+                ""
+                + "       01 b PIC X(5) VALUE 'a b c'."
+                ,
+                false,
+                false);
+    }
 }
