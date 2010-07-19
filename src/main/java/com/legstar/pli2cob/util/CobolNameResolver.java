@@ -11,7 +11,7 @@
 package com.legstar.pli2cob.util;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -74,13 +74,12 @@ public class CobolNameResolver {
      * Create an instance of the cobol name resolver.
      */
     public CobolNameResolver() {
-        InputStreamReader stream = null;
+        InputStream stream = null;
         if (_reservedWords == null) {
             try {
                 _reservedWords = new Properties();
-                stream = new InputStreamReader(
-                        CobolNameResolver.class.getResourceAsStream(
-                                RWS_FILE_NAME));
+                stream = CobolNameResolver.class.getResourceAsStream(
+                                RWS_FILE_NAME);
                 _reservedWords.load(stream);
             } catch (IOException e) {
                 _log.warn("Unable to locate COBOL reserved word file " + RWS_FILE_NAME

@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
@@ -195,12 +195,11 @@ public class PLIStructureToCobolMain {
      * @return the product version
      */
     public static String getVersion() {
-        InputStreamReader stream = null;
+        InputStream stream = null;
         try {
             Properties version = new Properties();
-            stream = new InputStreamReader(
-                    CobolNameResolver.class.getResourceAsStream(
-                            VERSION_FILE_NAME));
+            stream = CobolNameResolver.class.getResourceAsStream(
+                            VERSION_FILE_NAME);
             version.load(stream);
             return  version.getProperty("version");
         } catch (IOException e) {
